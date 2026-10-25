@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>ゼンマイの塔</title>
+<meta name="description" content="ゼンマイ人形を巻いて跳ばせ、10階建ての時計塔のてっぺんの鐘を目指すゲーム（試作版）">
+<meta property="og:title" content="ゼンマイの塔">
+<meta property="og:description" content="ゼンマイ人形を巻いて跳ばせ、10階建ての時計塔のてっぺんの鐘を目指すゲーム（試作版）">
+<meta name="robots" content="noindex">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0d0b12;
+    --panel: #1d1720;
+    --text: #f1e6cf;
+    --muted: #a8977e;
+    --accent: #e8b54a;
+    --accent-ink: #2a1a08;
+    --line: #4a3a28;
+    --pixel: "DotGothic16", "Hiragino Sans", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+    --reserve: 128px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+  body { overscroll-behavior: none; touch-action: manipulation; }
+  #app { min-height: 100%; display: flex; flex-direction: column; align-items: center;
+    padding-block: 8px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); gap: 8px; }
+  .hud { width: var(--stage-w); display: flex; flex-direction: column; gap: 2px;
+    font-family: var(--pixel); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .hud-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .hud-stats { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+  .hud #hud-area { color: var(--text); font-weight: 600; font-size: 14px; flex: 1; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hud #hud-wind { color: var(--accent); }
+  .hud button { padding: 4px 10px; font-size: 13px; white-space: nowrap; }
+  .stage { container-type: inline-size; position: relative; width: var(--stage-w); aspect-ratio: 3 / 4; border: 1px solid var(--line);
+    border-radius: 6px; overflow: hidden; background: #000; }
+  #app { --stage-w: min(calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+    calc((100dvh - var(--reserve) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 0.75), 720px); }
+  canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
+  #banner { position: absolute; left: 0; right: 0; top: 18%; text-align: center; font-size: clamp(18px, 5vw, 28px);
+    font-family: var(--pixel); letter-spacing: 0.12em; color: var(--text); text-shadow: 0 2px 0 #000, 0 0 12px #000;
+    opacity: 0; transition: opacity 0.4s; pointer-events: none; }
+  #banner.show { opacity: 1; }
+  .overlay { position: absolute; inset: 0; background: rgba(10, 8, 14, 0.84); display: flex; flex-direction: column;
+    align-items: center; justify-content: safe center; gap: 2.2cqw; padding: 4cqw; text-align: center; overflow-y: auto; }
+  .overlay[hidden] { display: none; }
+  #ending { justify-content: flex-end; padding-bottom: 8%;
+    background: linear-gradient(to bottom, rgba(10, 8, 14, 0) 30%, rgba(10, 8, 14, 0.9) 62%); }
+  h1, h2 { font-family: var(--pixel); font-weight: 400; margin: 0; color: var(--accent);
+    text-shadow: 0 3px 0 #5a3a12, 0 0 18px rgba(232, 181, 74, 0.35); }
+  h1, h2 { white-space: nowrap; }
+  h1 { font-size: clamp(20px, 9.5cqw, 46px); letter-spacing: 0.12em; }
+  h2 { font-size: clamp(18px, 8cqw, 36px); letter-spacing: 0.1em; }
+  .sub { margin: 0; color: var(--muted); font-size: 13px; }
+  .how { margin: 0 0 1cqw; padding: 0; list-style: none; font-size: clamp(11px, 3.3cqw, 15px); line-height: 1.6; text-align: left; }
+  .how li::before { content: "・"; color: var(--accent); }
+  button { font: inherit; font-family: var(--pixel); color: var(--text); background: var(--panel); border: 2px solid var(--line);
+    border-radius: 4px; padding: 8px 14px; cursor: pointer; }
+  button:hover { border-color: var(--muted); }
+  .hud-buttons { display: flex; gap: 6px; }
+  .hud-buttons button[hidden] { display: none; }
+  .overlay .row { display: flex; gap: 2cqw; width: 84%; }
+  .note { margin: 0; color: var(--muted); font-size: clamp(10px, 3cqw, 14px); }
+  .note[hidden] { display: none; }
+  .floors { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6cqw; width: 92%; }
+  .overlay .floors button { min-width: 0; padding: clamp(4px, 1.4cqw, 8px) 4px; font-size: clamp(11px, 3.2cqw, 15px); }
+  .overlay .row button { min-width: 0; flex: 1; padding-inline: 4px; white-space: nowrap; font-size: clamp(11px, 3cqw, 15px); }
+  .overlay button { min-width: 60%; padding: clamp(5px, 1.8cqw, 10px) 14px; font-size: clamp(13px, 3.6cqw, 16px); }
+  .overlay button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+  dl { display: grid; grid-template-columns: auto auto; gap: 4px 16px; margin: 4px 0 10px; font-size: 18px; }
+  dt { color: var(--muted); text-align: right; }
+  dd { margin: 0; text-align: left; font-variant-numeric: tabular-nums; }
+  .pad { width: var(--stage-w); display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 8px; margin-top: auto; }
+  .pad button { height: 64px; font-size: 20px; touch-action: none; }
+  .pad button.big { background: #3a2f1c; border-color: var(--accent); color: var(--accent); font-size: 17px; font-weight: 700; }
+  .pad button.on { filter: brightness(1.5); }
+  .keys { width: var(--stage-w); margin: 0; font-size: 12px; color: var(--muted); line-height: 1.6; }
+  @media (max-height: 640px) {
+    .sub { display: none; }
+    .how { font-size: clamp(10px, 3cqw, 13px); line-height: 1.4; }
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .pad { display: none; }
+  }
+  @media not ((hover: hover) and (pointer: fine)) {
+    :root { --reserve: 180px; }
+    #app { height: 100%; }
+    .keys { display: none; }
+  }
+</style>
+</head>
+<body>
+<main id="app">
+  <header class="hud">
+    <div class="hud-top">
+      <span id="hud-area"></span>
+      <span class="hud-buttons">
+        <button id="btn-warp" type="button" hidden>階えらび</button>
+        <button id="btn-menu" type="button">メニュー</button>
+      </span>
+    </div>
+    <div class="hud-stats">
+      <span id="hud-wind"></span>
+      <span id="hud-time"></span>
+      <span id="hud-jumps"></span>
+      <span id="hud-falls"></span>
+    </div>
+  </header>
+  <div class="stage">
+    <canvas id="game" aria-label="ゲーム画面"></canvas>
+    <div id="banner"></div>
+    <div id="menu" class="overlay" hidden>
+      <h1>ゼンマイの塔</h1>
+      <p class="sub">試作版</p>
+      <ul class="how">
+        <li>長押しでゼンマイを巻く（最大24回）。離すと歩き出し、止まれない</li>
+        <li>歩いている間にもう一度押すと、残りを全部使って跳ぶ</li>
+        <li>空中では動かせない。壁に当たると跳ね返る</li>
+        <li>油の床は2倍、蜂蜜の床は半分歩く。金色のねじ巻き台は36回まで巻ける</li>
+        <li>ベルトや、揺れる・回る板に乗ると運ばれる</li>
+        <li>ハチは赤く光ってから突っ込んでくる。当たると弾き飛ばされる（巻いている間は平気）</li>
+        <li>10階のてっぺんの鐘を鳴らせばゴール</li>
+      </ul>
+      <button id="btn-continue" type="button">つづきから</button>
+      <button id="btn-new" type="button">はじめる</button>
+      <button id="btn-hard" type="button" hidden>むずかしい塔ではじめる</button>
+      <div class="row">
+        <button id="btn-sound" type="button">効果音: あり</button>
+        <button id="btn-music" type="button">音楽: あり</button>
+        <button id="btn-dev" type="button">開発者</button>
+      </div>
+    </div>
+    <div id="dev" class="overlay" hidden>
+      <h2>開発者モード</h2>
+      <p class="note">押した階の入口へ移る（数字キーでも可）。ふだんの記録は変わらない</p>
+      <div class="floors" id="dev-floors"></div>
+      <div class="row">
+        <button id="dev-guard" type="button">無敵 なし</button>
+        <button id="dev-hard" type="button">塔 ふつう</button>
+      </div>
+      <button id="dev-back" class="primary" type="button">遊びにもどる</button>
+      <button id="dev-exit" type="button">開発者モードをやめる</button>
+    </div>
+    <div id="ending" class="overlay" hidden>
+      <h2>鐘が鳴った！</h2>
+      <dl>
+        <dt>塔</dt><dd id="end-mode"></dd>
+        <dt>かかった時間</dt><dd id="end-time"></dd>
+        <dt>跳んだ回数</dt><dd id="end-jumps"></dd>
+        <dt>落ちた回数</dt><dd id="end-falls"></dd>
+      </dl>
+      <p class="note" id="end-note" hidden>むずかしい塔（巻いている間もハチに当たる）が、メニューから遊べるようになった</p>
+      <button id="btn-again" class="primary" type="button">もう一度登る</button>
+    </div>
+  </div>
+  <div class="pad">
+    <button type="button" data-pad="left" aria-label="左を向く">◀</button>
+    <button type="button" data-pad="button" class="big">巻く ／ 跳ぶ</button>
+    <button type="button" data-pad="right" aria-label="右を向く">▶</button>
+  </div>
+  <p class="keys">← → で向きを決める ／ スペースを長押しで巻き、離すと歩く ／ 歩いている間にスペースで跳ぶ ／ Esc でメニュー</p>
+</main>
+<script src="levels.js"></script>
+<script src="core.js"></script>
+<script src="art.js"></script>
+<script src="music.js"></script>
+<script src="main.js"></script>
+<!-- ドット文字。ゲームの script より後に置き、読み込みを待たずに遊べるようにする -->
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+</body>
+</html>
