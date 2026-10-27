@@ -123,6 +123,48 @@
       glow: '255,236,190', lights: [[240, 330, 260, 0.12]],
       plat: 'stone',
     },
+    steam: {
+      bg: '#12100e', brick: ['#1f1a16', '#231d18', '#1b1612'], mortar: '#0c0a08',
+      wall: { mid: '#5a4a40', light: '#72604f', top: '#b39a80', dark: '#352b24' },
+      glow: '255,170,110', lights: [[60, 560, 170, 0.22], [420, 90, 150, 0.2]],
+      plat: 'iron',
+    },
+    reverse: {
+      bg: '#130f18', brick: ['#1e1826', '#221b2b', '#1a1521'], mortar: '#0b0910',
+      wall: { mid: '#544863', light: '#6a5c7d', top: '#a99bc4', dark: '#322a3d' },
+      glow: '200,170,255', lights: [[240, 300, 230, 0.16]],
+      plat: 'brass',
+    },
+    cuckoo: {
+      bg: '#170f09', brick: ['#24170e', '#291a10', '#20140c'], mortar: '#100a05',
+      wall: { mid: '#6a4a30', light: '#84603e', top: '#c09060', dark: '#3d2a1a' },
+      glow: '255,190,110', lights: [[120, 200, 170, 0.2], [380, 470, 170, 0.2]],
+      plat: 'wood',
+    },
+    dark: {
+      bg: '#0b0c0f', brick: ['#15171c', '#181a20', '#121418'], mortar: '#07080a',
+      wall: { mid: '#3e434d', light: '#525865', top: '#8a92a2', dark: '#24272e' },
+      glow: '150,180,255', lights: [],
+      plat: 'iron',
+    },
+    magnet: {
+      bg: '#0e1116', brick: ['#181d24', '#1b2129', '#151a20'], mortar: '#090b0f',
+      wall: { mid: '#46505e', light: '#5b6778', top: '#9aa8bc', dark: '#29303a' },
+      glow: '120,200,255', lights: [[240, 200, 200, 0.14], [240, 520, 160, 0.12]],
+      plat: 'iron',
+    },
+    rust: {
+      bg: '#140e0b', brick: ['#20160f', '#241911', '#1c130d'], mortar: '#0e0906',
+      wall: { mid: '#5e4636', light: '#775a45', top: '#b08a6a', dark: '#382a20' },
+      glow: '255,160,90', lights: [[240, 250, 230, 0.16]],
+      plat: 'beam',
+    },
+    outside: {
+      bg: '#1b2a4a', brick: ['#1b2a4a', '#1b2a4a', '#1b2a4a'], mortar: '#1b2a4a',
+      wall: { mid: '#5f5a72', light: '#77718c', top: '#b1aac8', dark: '#3a364a' },
+      glow: '255,230,190', lights: [],
+      plat: 'stone', sky: true,
+    },
   };
 
   // ---------- ハチ ----------
@@ -218,6 +260,51 @@
       return '#8a5a1c';
     });
   })();
+
+  // ---------- 鳩時計の鳩・磁石・幽霊 ----------
+  const CUCKOO_BIRD = sprite([
+    '................',
+    '........kkkk....',
+    '.......kbbbbk...',
+    '.......kbbebkoo.',
+    '..kkk..kbbbbkooo',
+    '.kbbbkkbbbbbk...',
+    'kbbbbbbbwwwbk...',
+    'kbbbbbbwwwwbk...',
+    '.kbbbbbwwwbk....',
+    '..kkbbbbbbk.....',
+    '....kkkkkk......',
+    '......y..y......',
+  ], { k: '#1b1424', b: '#8a5a2c', w: '#f2e6cc', e: '#fff6d8', o: '#f0a020', y: '#d08020' });
+  const MAGNET = sprite([
+    '..kkkkkkkkkk..',
+    '.krrrrrrrrrrk.',
+    'krrRRRRRRRRrrk',
+    'krRk......kRrk',
+    'krRk......kRrk',
+    'krRk......kRrk',
+    'krRk......kRrk',
+    'kssk......kssk',
+    'kSSk......kSSk',
+    'kkkk......kkkk',
+  ], { k: '#1b1424', r: '#c0392b', R: '#e45b4a', s: '#e8eef6', S: '#9aa4b2' });
+  const MAGNET_OFF = sprite([
+    '..kkkkkkkkkk..',
+    '.krrrrrrrrrrk.',
+    'krrRRRRRRRRrrk',
+    'krRk......kRrk',
+    'krRk......kRrk',
+    'krRk......kRrk',
+    'krRk......kRrk',
+    'kssk......kssk',
+    'kSSk......kSSk',
+    'kkkk......kkkk',
+  ], { k: '#1b1424', r: '#5a3a3a', R: '#6e4a4a', s: '#7a8090', S: '#5a606c' });
+  // 幽霊（前の自分）は、同じ形を薄い青で
+  const GHOST_PAL = {};
+  for (const k of Object.keys(DOLL_PAL)) GHOST_PAL[k] = k === 'k' || k === 'e' ? '#4a6a9a' : '#bcd8ff';
+  const GHOST = {};
+  for (const k of Object.keys(LEGS)) GHOST[k] = sprite(DOLL_TOP.concat(LEGS[k]), GHOST_PAL);
 
   // ---------- 足場の並び ----------
   function runsOf(level, s) {
@@ -581,6 +668,188 @@
           }
         }
       },
+      steam(g) {
+        // 銅の配管とボイラー
+        const pipe = (x1, y1, x2, y2) => {
+          if (x1 === x2) {
+            rect(g, x1 - 7, y1, 14, y2 - y1, '#4a3022');
+            rect(g, x1 - 5, y1, 3, y2 - y1, '#7a5034');
+            for (let y = y1 + 40; y < y2; y += 100) rect(g, x1 - 9, y, 18, 7, '#2e1e15');
+          } else {
+            // 横の管は乗れる足場に見えないよう、暗く細く、上に明るい線を付けない
+            rect(g, x1, y1 - 4, x2 - x1, 8, '#2e1e15');
+            rect(g, x1, y1 + 2, x2 - x1, 2, '#3a2619');
+            for (let x = x1 + 40; x < x2; x += 100) rect(g, x, y1 - 6, 5, 12, '#22160f');
+          }
+        };
+        pipe(40, 0, 40, H);
+        pipe(440, 0, 440, H);
+        pipe(40, 130, 180, 130);
+        pipe(300, 470, 440, 470);
+        for (const [x, y, r] of [[70, 625, 34], [380, 610, 40]]) {
+          g.fillStyle = '#2a1c14';
+          g.beginPath();
+          g.arc(x, y, r, Math.PI, 0);
+          g.fill();
+          rect(g, x - r, y, r * 2, H - y, '#2a1c14');
+          for (let i = -r + 8; i < r; i += 14) rect(g, x + i, y - Math.sqrt(Math.max(0, r * r - i * i)) + 4, 3, 3, '#4a3022');
+        }
+        for (const [x, y] of [[120, 130], [370, 470]]) {
+          g.fillStyle = '#1e1510';
+          g.beginPath();
+          g.arc(x, y - 30, 16, 0, Math.PI * 2);
+          g.fill();
+          g.fillStyle = '#d9cfb0';
+          g.beginPath();
+          g.arc(x, y - 30, 12, 0, Math.PI * 2);
+          g.fill();
+          rect(g, x - 3, y - 14, 6, 8, '#4a3022');
+        }
+      },
+      reverse(g) {
+        // 逆回りの時計（数字の印が鏡写し）と、向きの入れ替わった矢印
+        for (const [cx, cy, r] of [[110, 140, 46], [370, 300, 58], [140, 500, 40]]) {
+          g.fillStyle = '#2a2236';
+          g.beginPath();
+          g.arc(cx, cy, r + 6, 0, Math.PI * 2);
+          g.fill();
+          g.fillStyle = '#3e3550';
+          g.beginPath();
+          g.arc(cx, cy, r, 0, Math.PI * 2);
+          g.fill();
+          for (let i = 0; i < 12; i++) {
+            g.save();
+            g.translate(cx, cy);
+            g.rotate(-(i / 12) * Math.PI * 2);
+            rect(g, -2, -r + 5, 4, i % 3 === 0 ? 10 : 5, '#1c1626');
+            g.restore();
+          }
+        }
+        g.fillStyle = '#2a2236';
+        for (const [x, y, dir] of [[300, 80, -1], [60, 330, 1], [330, 560, -1]]) {
+          g.beginPath();
+          g.moveTo(x + dir * 30, y);
+          g.lineTo(x - dir * 4, y - 16);
+          g.lineTo(x - dir * 4, y - 7);
+          g.lineTo(x - dir * 34, y - 7);
+          g.lineTo(x - dir * 34, y + 7);
+          g.lineTo(x - dir * 4, y + 7);
+          g.lineTo(x - dir * 4, y + 16);
+          g.fill();
+        }
+      },
+      cuckoo(g) {
+        // 板張りの壁と、飾りの鳩時計
+        for (let x = 0; x < W; x += 24) rect(g, x, 0, 1, H, '#120b06');
+        const house = (x, y, sc) => {
+          g.fillStyle = '#3a2414';
+          g.beginPath();
+          g.moveTo(x - 26 * sc, y);
+          g.lineTo(x, y - 22 * sc);
+          g.lineTo(x + 26 * sc, y);
+          g.fill();
+          rect(g, x - 20 * sc, y, 40 * sc, 44 * sc, '#2e1c10');
+          g.fillStyle = '#4a3220';
+          g.beginPath();
+          g.arc(x, y + 22 * sc, 12 * sc, 0, Math.PI * 2);
+          g.fill();
+          rect(g, x - 5 * sc, y - 4 * sc, 10 * sc, 9 * sc, '#1a0f08');
+          for (const dx of [-10, 10]) {
+            rect(g, x + dx * sc - 1, y + 44 * sc, 2, 60 * sc, '#3a2a1a');
+            rect(g, x + dx * sc - 4, y + 104 * sc, 8, 16 * sc, '#4a3018');
+          }
+        };
+        house(240, 90, 1.2);
+        house(110, 380, 0.9);
+        house(380, 330, 1);
+      },
+      dark(g) {
+        // 止まった機械の影（停電中なので、ほとんど見えない）
+        g.fillStyle = '#14161b';
+        for (const [x, y, w, h] of [[30, 60, 90, 120], [360, 40, 100, 90], [200, 260, 80, 140], [40, 420, 110, 160], [330, 470, 120, 140]]) {
+          g.fillRect(x, y, w, h);
+          rect(g, x + 6, y + 6, w - 12, 4, '#1c1f26');
+          rect(g, x + 10, y + 18, 14, 14, '#101216');
+        }
+        for (const x of [160, 300]) rect(g, x, 0, 10, H, '#111318');
+      },
+      magnet(g) {
+        // 銅線を巻いた筒（電磁石の機械）と、太い電線
+        // 筒は足場から離して置き、ふたも暗くする（乗れる物に見えないように）
+        const coil = (x, y, w, h) => {
+          rect(g, x, y, w, h, '#221f1a');
+          for (let yy = y + 4; yy < y + h - 4; yy += 6) rect(g, x + 3, yy, w - 6, 3, '#5e3a1a');
+          rect(g, x - 3, y - 4, w + 6, 4, '#20242b');
+          rect(g, x - 3, y + h, w + 6, 4, '#20242b');
+        };
+        coil(40, 250, 46, 160);
+        coil(398, 420, 44, 150);
+        g.strokeStyle = '#161920';
+        g.lineWidth = 5;
+        g.beginPath();
+        g.moveTo(63, 414);
+        g.bezierCurveTo(70, 500, 300, 520, 420, 574);
+        g.stroke();
+      },
+      rust(g) {
+        // 奥の折れた梁と、錆のしみ
+        g.strokeStyle = '#2a1a12';
+        g.lineWidth = 12;
+        g.beginPath();
+        g.moveTo(0, 460);
+        g.lineTo(200, 300);
+        g.moveTo(480, 140);
+        g.lineTo(300, 260);
+        g.moveTo(60, 0);
+        g.lineTo(150, 120);
+        g.stroke();
+        for (let i = 0; i < 26; i++) {
+          const x = Math.floor(hash(i, 2, 9) * W), y = Math.floor(hash(i, 3, 9) * H);
+          g.fillStyle = 'rgba(120,50,20,0.18)';
+          g.beginPath();
+          g.ellipse(x, y, 6 + hash(i, 4, 9) * 14, 3 + hash(i, 5, 9) * 6, 0, 0, Math.PI * 2);
+          g.fill();
+          rect(g, x, y, 2, 10 + Math.floor(hash(i, 6, 9) * 30), 'rgba(120,50,20,0.15)');
+        }
+      },
+      outside(g) {
+        // 夜明け前の空・遠くの町・塔の外壁（真ん中）
+        const sky = g.createLinearGradient(0, 0, 0, H);
+        sky.addColorStop(0, '#0d1430');
+        sky.addColorStop(0.6, '#2a3566');
+        sky.addColorStop(1, '#6a5a7a');
+        g.fillStyle = sky;
+        g.fillRect(0, 0, W, H);
+        for (let i = 0; i < 40; i++) {
+          const x = Math.floor(hash(i, 1, 31) * W), y = Math.floor(hash(i, 2, 31) * H * 0.6);
+          rect(g, x, y, 2, 2, hash(i, 3, 31) > 0.7 ? '#fff6d8' : '#8f97c8');
+        }
+        // 遠くの町の灯り（下の方）
+        for (let i = 0; i < 60; i++) {
+          const x = Math.floor(hash(i, 4, 31) * W), y = H - 40 + Math.floor(hash(i, 5, 31) * 36);
+          rect(g, x, y, 2, 2, hash(i, 6, 31) > 0.5 ? '#ffcf6a' : '#ff9a4a');
+        }
+        // 塔の外壁（石積み）
+        const x1 = 70, x2 = 410;
+        rect(g, x1, 0, x2 - x1, H, '#3a364a');
+        for (let by = 0; by < H; by += 20) {
+          const off = (by / 20) % 2 ? 20 : 0;
+          for (let bx = x1 - off; bx < x2; bx += 40) {
+            const v = hash(bx, by, 32);
+            rect(g, Math.max(x1, bx + 1), by + 1, Math.min(38, x2 - Math.max(x1, bx + 1)), 18, v > 0.5 ? '#433e55' : '#3e394f');
+          }
+        }
+        rect(g, x1, 0, 4, H, '#5a5470');
+        rect(g, x2 - 4, 0, 4, H, '#26232f');
+        // 灯りのもれる細い窓
+        for (const [x, y] of [[150, 120], [320, 260], [180, 430]]) {
+          rect(g, x - 9, y - 4, 18, 40, '#1d1a26');
+          rect(g, x - 6, y, 12, 32, '#e8b54a');
+          rect(g, x - 1, y, 2, 32, '#7a5a20');
+          rect(g, x - 6, y + 15, 12, 2, '#7a5a20');
+          glow(g, x, y + 16, 40, '255,200,110', 0.18);
+        }
+      },
     };
 
     // 町の窓（ゴールで灯りがともる）
@@ -727,6 +996,17 @@
       if (!solid(ty, tx + 1)) rect(g, x + T - 1, y, 1, T, '#3e2406');
     }
 
+    // 蒸気の噴き出し口: 鉄の格子
+    function drawVentTile(g, x, y, ty, tx) {
+      rect(g, x, y, T, T, '#3a3530');
+      rect(g, x, y, T, 3, '#9a8a78');
+      rect(g, x, y + 3, T, 1, '#1a1612');
+      for (let i = 2; i < T; i += 4) rect(g, x + i, y + 5, 2, 7, '#0e0b09');
+      rect(g, x, y + T - 2, T, 2, '#1a1612');
+      if (!solid(ty, tx - 1)) rect(g, x, y, 1, T, '#140f12');
+      if (!solid(ty, tx + 1)) rect(g, x + T - 1, y, 1, T, '#140f12');
+    }
+
     function drawBeltBase(g, x, y) {
       rect(g, x, y, T, T, '#2b2d33');
       rect(g, x, y + 4, T, 1, '#1a1b20');
@@ -763,7 +1043,7 @@
             }
           }
         }
-      } else {
+      } else if (!th.sky) {
         for (let by = 0; by < H; by += 16) {
           const off = (by / 16) % 2 ? 16 : 0;
           for (let bx = -off; bx < W; bx += 32) {
@@ -786,7 +1066,9 @@
           else if (ch === '=') drawOil(fg, x, y, ty, cc);
           else if (ch === 'K') drawKey(fg, x, y, ty, cc);
           else if (ch === 'h') drawHoney(fg, x, y, ty, cc);
+          else if (ch === 'v') drawVentTile(fg, x, y, ty, cc);
           else if (ch === '>' || ch === '<') drawBeltBase(fg, x, y);
+          // 錆びた梁（r）は崩れるので、毎回描く（drawRust）
         }
       }
       return { bg: c, fg: fc };
@@ -982,7 +1264,95 @@
           g.restore();
         }
       },
+      steam(g, t) {
+        // 圧力計の針と、つなぎ目から漏れる湯気
+        for (const [x, y, k] of [[120, 100, 0], [370, 440, 1]]) {
+          const a = Math.PI * 1.2 + 0.3 * Math.sin(t * (2 + k)) + 0.1 * Math.sin(t * 13 + k);
+          g.strokeStyle = '#b8322a';
+          g.lineWidth = 2;
+          g.beginPath();
+          g.moveTo(x, y);
+          g.lineTo(x + Math.cos(a) * 10, y + Math.sin(a) * 10);
+          g.stroke();
+        }
+        for (const [x, y, i] of [[40, 190, 0], [440, 290, 1], [160, 130, 2], [320, 470, 3]]) {
+          for (let k = 0; k < 4; k++) {
+            const f = (t * 0.6 + k / 4 + i * 0.3) % 1;
+            g.globalAlpha = 0.18 * (1 - f);
+            g.fillStyle = '#e8e2d8';
+            g.beginPath();
+            g.arc(x + Math.sin(t + k) * 4, y - f * 50, 4 + f * 10, 0, Math.PI * 2);
+            g.fill();
+          }
+        }
+        g.globalAlpha = 1;
+      },
+      reverse(g, t) {
+        // 針が逆に回る
+        for (const [cx, cy, r, sp] of [[110, 140, 46, 1.2], [370, 300, 58, 0.7], [140, 500, 40, 1.6]]) {
+          for (const [len, w, k] of [[r * 0.55, 5, 1 / 12], [r * 0.8, 3, 1]]) {
+            g.save();
+            g.translate(cx, cy);
+            g.rotate(-t * sp * k);
+            rect(g, -w / 2, -len, w, len + 4, '#1c1626');
+            g.restore();
+          }
+          rect(g, cx - 3, cy - 3, 6, 6, '#8a7aa8');
+        }
+      },
+      cuckoo(g, t) {
+        // 飾りの鳩時計の振り子
+        for (const [x, y, sc, k] of [[240, 90, 1.2, 0], [110, 380, 0.9, 1], [380, 330, 1, 2]]) {
+          const a = 0.35 * Math.sin(t * 3 + k * 2);
+          g.save();
+          g.translate(x, y + 44 * sc);
+          g.rotate(a);
+          rect(g, -1, 0, 2, 40 * sc, '#5a4028');
+          g.fillStyle = '#a07a3a';
+          g.beginPath();
+          g.arc(0, 40 * sc, 6 * sc, 0, Math.PI * 2);
+          g.fill();
+          g.restore();
+        }
+      },
+      magnet(g, t) {
+        // 筒のまわりの小さな火花
+        for (const [x, y] of [[63, 250], [420, 420]]) {
+          if (Math.sin(t * 7 + x) > 0.7) {
+            rect(g, x + Math.round(Math.sin(t * 31 + y) * 20), y - 8, 2, 2, '#bfe6ff');
+            rect(g, x + Math.round(Math.cos(t * 23 + x) * 20), y - 4, 2, 2, '#ffffff');
+          }
+        }
+      },
+      rust(g, t) {
+        // 落ちてくる錆の粉
+        for (let i = 0; i < 14; i++) {
+          const x = (hash(i, 7, 7) * W + Math.sin(t * 0.8 + i) * 10) % W;
+          const y = (hash(i, 8, 8) * H + t * (12 + hash(i, 9, 9) * 10)) % H;
+          g.globalAlpha = 0.5;
+          rect(g, Math.round(x), Math.round(y), 2, 2, '#8a4a22');
+        }
+        g.globalAlpha = 1;
+      },
+      outside(g, t) {
+        // 流れる雲（風の向きに流れる）
+        const w = level.winds[curScreen];
+        const dir = w ? C.windAt(w, sim.clock) : 0;
+        cloudX += (8 + dir * 40) * Math.min(0.1, t - (cloudT === null ? t : cloudT));
+        cloudT = t;
+        for (let i = 0; i < 7; i++) {
+          const x = ((hash(i, 1, 41) * (W + 200) + cloudX * (0.6 + hash(i, 2, 41))) % (W + 200) + W + 200) % (W + 200) - 100;
+          const y = 40 + hash(i, 3, 41) * 520;
+          g.fillStyle = 'rgba(150,150,190,0.16)';
+          for (let k = 0; k < 4; k++) {
+            g.beginPath();
+            g.ellipse(x + k * 22, y + (k % 2) * 6, 26, 12, 0, 0, Math.PI * 2);
+            g.fill();
+          }
+        }
+      },
     };
+    let cloudX = 0, cloudT = null;
     let curScreen = 0;
 
     // 動く足場（振り子の板・時計の針の先の板）
@@ -1080,6 +1450,285 @@
       }
     }
 
+    // ---------- 仕掛け ----------
+    const wrapT = (x, n) => ((x % n) + n) % n;
+
+    // 蒸気: 予告は細い湯気、噴いている間は太い柱
+    function drawVents(g, s, t) {
+      for (const v of level.vents) {
+        if (v.screen !== s) continue;
+        const st = C.ventState(v, sim.clock);
+        const p = wrapT(sim.clock + v.phase, v.period);
+        const cx = ((v.c1 + v.c2 + 1) / 2) * T, top = (v.row - s * C.ROWS) * T;
+        const width = (v.c2 - v.c1 + 1) * T;
+        if (st === 'warn') {
+          // 飾りの湯気と見分けられるように: 格子がだいだい色に光り、上に「！」が点滅する
+          const blink = Math.floor(t * 8) % 2;
+          g.globalAlpha = blink ? 0.85 : 0.45;
+          rect(g, v.c1 * T, top - 2, width, 3, '#ff8a2a');
+          if (blink) {
+            g.globalAlpha = 1;
+            rect(g, cx - 2, top - 46, 4, 10, '#ff8a2a');
+            rect(g, cx - 2, top - 33, 4, 4, '#ff8a2a');
+          }
+          for (let k = 0; k < 6; k++) {
+            const f = (t * 1.6 + k / 6) % 1;
+            g.globalAlpha = 0.45 * (1 - f);
+            g.fillStyle = '#f4efe6';
+            g.beginPath();
+            g.arc(cx + Math.sin(k * 3 + t * 4) * width * 0.3, top - f * 30, 3 + f * 5, 0, Math.PI * 2);
+            g.fill();
+          }
+        } else if (st === 'on' || p < C.P.ventOn + 0.6) {
+          const fade = st === 'on' ? 1 : 1 - (p - C.P.ventOn) / 0.6;
+          const h = v.power * T * 0.9;
+          for (let k = 0; k < 22; k++) {
+            const f = (t * 2.6 + k / 22) % 1;
+            g.globalAlpha = 0.6 * (1 - f) * fade;
+            g.fillStyle = k % 3 ? '#f4efe6' : '#cfc8bc';
+            g.beginPath();
+            g.arc(cx + Math.sin(k * 7 + t * 3) * (4 + f * width * 0.6), top - f * h, 6 + f * 16, 0, Math.PI * 2);
+            g.fill();
+          }
+        }
+        g.globalAlpha = 1;
+      }
+    }
+
+    // 錆びた梁: 乗るときしんで揺れ、崩れると消える。戻る少し前に点滅して知らせる
+    const rustWas = [];
+    function drawRust(g, s, t) {
+      level.rusts.forEach((r, i) => {
+        const b = sim.rust[i];
+        if (!b) return;
+        const sy = Math.floor(r.ty / C.ROWS);
+        const was = rustWas[i] || 0;
+        rustWas[i] = b.down;
+        if (sy !== s) return;
+        const y = (r.ty - s * C.ROWS) * T;
+        if (b.down > 0) {
+          if (was === 0) {
+            for (let c = r.c1; c <= r.c2; c++) {
+              for (let k = 0; k < 3; k++) {
+                particles.push({ x: c * T + 4 + k * 4, y: r.ty * T + 6, vx: (Math.random() - 0.5) * 60, vy: -Math.random() * 40, g: 500, life: 0, max: 0.9, col: k % 2 ? '#8a4a22' : '#5a2c14', size: 3 });
+              }
+            }
+          }
+          if (b.down < 1.2 && Math.floor(t * 8) % 2) {
+            g.globalAlpha = 0.35;
+            for (let c = r.c1; c <= r.c2; c++) rect(g, c * T, y, T, 3, '#d98a4a');
+            g.globalAlpha = 1;
+          }
+          return;
+        }
+        const shake = b.t > 0 ? (Math.floor(t * 40) % 2 ? 1 : -1) : 0;
+        const prog = b.t > 0 ? 1 - b.t / C.P.rustTime : 0;
+        for (let c = r.c1; c <= r.c2; c++) {
+          const x = c * T + shake;
+          const v = hash(c, r.ty, 51);
+          rect(g, x, y, T, T, '#6e3a1e');
+          rect(g, x, y, T, 3, '#c06a32');
+          rect(g, x, y + 3, T, 1, '#4a2410');
+          rect(g, x + 2 + Math.floor(v * 8), y + 6, 4, 3, '#4a2410');
+          if (v > 0.5) rect(g, x + 9, y + 10, 3, 2, '#8a4a22');
+          rect(g, x, y + T - 2, T, 2, '#3a1c0c');
+          if (c === r.c1) rect(g, x, y, 1, T, '#1a0c06');
+          if (c === r.c2) rect(g, x + T - 1, y, 1, T, '#1a0c06');
+          // ひび（崩れが近いほど増える）
+          if (prog > 0.2) rect(g, x + 5, y + 3, 1, Math.min(T - 5, Math.round(prog * 14)), '#1a0c06');
+          if (prog > 0.55) rect(g, x + 11, y + 4, 1, Math.min(T - 6, Math.round(prog * 10)), '#1a0c06');
+        }
+      });
+    }
+
+    // 磁石: 引いている間は青い波が人形の方へ寄っていく
+    function drawMagnets(g, s, t) {
+      for (const m of level.magnets) {
+        if (m.screen !== s) continue;
+        const on = C.magnetOn(m, sim.clock);
+        const x = m.x * S, y = (m.y - s * C.SCREEN_H) * S;
+        rect(g, x - 1, y - 60, 2, 44, '#2a2f38');
+        if (on) {
+          const R = C.P.magnetRange * S;
+          for (let k = 0; k < 3; k++) {
+            const f = 1 - ((t * 0.8 + k / 3) % 1);
+            g.strokeStyle = `rgba(140,210,255,${0.22 * (1 - f)})`;
+            g.lineWidth = 2;
+            g.beginPath();
+            g.arc(x, y, R * f, 0, Math.PI * 2);
+            g.stroke();
+          }
+          glow(g, x, y + 6, 40, '120,200,255', 0.25);
+        }
+        g.drawImage(on ? MAGNET : MAGNET_OFF, x - 14, y - 12, 28, 20);
+        // 切り替わる磁石は、あと少しで変わるときに印を点滅させる
+        if (m.period) {
+          const p = wrapT(sim.clock + m.phase, m.period), half = m.period / 2;
+          const left = on ? half - p : m.period - p;
+          const col = on ? '#7ad0ff' : '#5a606c';
+          if (!(left < 0.7 && Math.floor(t * 10) % 2)) rect(g, x - 3, y - 18, 6, 4, col);
+        }
+      }
+    }
+
+    // 鳩時計: 予告で扉が揺れて音符が出る。飛び出すと、伸びる腕の先に鳩
+    function drawCuckoos(g, s, t) {
+      for (const k of level.cuckoos) {
+        if (k.screen !== s) continue;
+        const { ext, warn } = C.cuckooExt(k, sim.clock);
+        const left = k.side === 'L';
+        const y = (k.row - s * C.ROWS) * T;
+        const wallX = left ? T : W - T;
+        const dir = left ? 1 : -1;
+        const jig = warn ? (Math.floor(t * 30) % 2 ? 1 : -1) : 0;
+        // 扉の枠と屋根
+        const fx = left ? 0 : W - T - 6;
+        rect(g, fx + jig, y - T - 6, T + 6, 2 * T + 8, '#3a2414');
+        g.fillStyle = '#5a3a20';
+        g.beginPath();
+        g.moveTo(fx - 3 + jig, y - T - 6);
+        g.lineTo(fx + (T + 6) / 2 + jig, y - T - 18);
+        g.lineTo(fx + T + 9 + jig, y - T - 6);
+        g.fill();
+        rect(g, fx + 3 + jig, y - T - 2, T, 2 * T, ext > 0 ? '#0e0806' : '#6a4426');
+        if (ext <= 0) rect(g, fx + 3 + T / 2 + jig, y - T - 2, 1, 2 * T, '#3a2414');
+        if (warn) {
+          const ny = y - T - 30 - ((t * 30) % 10);
+          const nx = wallX + dir * 18;
+          rect(g, nx, ny, 2, 10, '#ffe08a');
+          rect(g, nx - 4, ny + 8, 5, 4, '#ffe08a');
+          rect(g, nx + 2, ny, 5, 2, '#ffe08a');
+        }
+        if (ext > 0) {
+          const len = C.TILE * (1 + k.reach * ext) * S;
+          const tip = left ? len : W - len;
+          // 伸びる腕（じゃばら）
+          g.strokeStyle = '#8a6a3a';
+          g.lineWidth = 2;
+          g.beginPath();
+          const n = 6;
+          for (let i = 0; i <= n; i++) {
+            const x = wallX + ((tip - wallX - dir * 16) * i) / n;
+            g.lineTo(x, y + (i % 2 ? -6 : 6));
+          }
+          g.stroke();
+          g.save();
+          g.translate(Math.round(tip - dir * 16), y);
+          g.scale(dir * 2, 2);
+          g.drawImage(CUCKOO_BIRD, -8, -7);
+          g.restore();
+        }
+      }
+    }
+
+    // 風見鶏と風の筋。向きが変わる1秒前から、風見鶏がくるくる回って知らせる
+    function drawWind(g, s, t) {
+      const w = level.winds[s];
+      if (!w) return;
+      const dir = C.windAt(w, sim.clock);
+      const nx = C.windNext(w, sim.clock);
+      if (dir) {
+        g.strokeStyle = 'rgba(230,240,255,0.35)';
+        g.lineWidth = 2;
+        for (let i = 0; i < 14; i++) {
+          const y = 30 + hash(i, 1, 61) * (H - 60);
+          const sp = 260 + hash(i, 2, 61) * 200;
+          const x = wrapT(hash(i, 3, 61) * W + dir * t * sp, W + 120) - 60;
+          g.beginPath();
+          g.moveTo(x, y);
+          g.lineTo(x - dir * (30 + hash(i, 4, 61) * 40), y);
+          g.stroke();
+        }
+      }
+      // 風見鶏（右上）
+      const vx = W - 64, vy = 54;
+      rect(g, vx - 2, vy, 4, 44, '#2a2638');
+      rect(g, vx - 14, vy + 22, 28, 3, '#2a2638');
+      const spin = nx.in < 1 ? Math.sin(t * 30) : dir || Math.sin(t * 2) * 0.3;
+      g.save();
+      g.translate(vx, vy);
+      g.scale(spin >= 0 ? 1 : -1, 1);
+      g.fillStyle = '#e8b54a';
+      g.beginPath();
+      g.moveTo(22, 0);
+      g.lineTo(10, -8);
+      g.lineTo(10, -3);
+      g.lineTo(-18, -3);
+      g.lineTo(-22, -10);
+      g.lineTo(-22, 10);
+      g.lineTo(-18, 3);
+      g.lineTo(10, 3);
+      g.lineTo(10, 8);
+      g.fill();
+      rect(g, -6, -18, 10, 10, '#e8b54a');
+      rect(g, -2, -24, 4, 6, '#c0392b');
+      g.restore();
+      // 文字でも知らせる
+      g.font = '14px "DotGothic16", monospace';
+      g.textAlign = 'center';
+      g.fillStyle = nx.in < 1 ? '#ffe08a' : '#e8e2f8';
+      const label = dir < 0 ? '← 風' : dir > 0 ? '風 →' : '風 なし';
+      g.fillText(nx.in < 1 ? `${label}（もうすぐ${nx.dir < 0 ? '←' : nx.dir > 0 ? '→' : 'やむ'}）` : label, vx - 10, vy + 64);
+    }
+
+    // 停電: 人形のまわりだけ見え、稲光で一瞬全体が見える
+    const darkCanvas = makeCanvas(W, H);
+    const darkG = darkCanvas.getContext('2d');
+    function drawDark(g, s, t) {
+      if (!level.dark[s]) return;
+      const flash = C.flashAt(sim.clock);
+      const d = sim.d;
+      const cx = (d.x + C.P.dollW / 2) * S, cy = (d.y + C.P.dollH / 2 - s * C.SCREEN_H) * S;
+      darkG.globalCompositeOperation = 'source-over';
+      darkG.clearRect(0, 0, W, H);
+      // 0.9: 灯りの外の足場も、明るい所でスマホを見て輪郭が分かるくらいに残す
+      darkG.fillStyle = `rgba(2,3,6,${0.9 * (1 - flash)})`;
+      darkG.fillRect(0, 0, W, H);
+      darkG.globalCompositeOperation = 'destination-out';
+      const r = 120 + Math.sin(t * 9) * 3;
+      const gr = darkG.createRadialGradient(cx, cy, 30, cx, cy, r);
+      gr.addColorStop(0, 'rgba(0,0,0,1)');
+      gr.addColorStop(1, 'rgba(0,0,0,0)');
+      darkG.fillStyle = gr;
+      darkG.fillRect(cx - r, cy - r, r * 2, r * 2);
+      g.drawImage(darkCanvas, 0, 0);
+      if (flash > 0) {
+        g.save();
+        g.globalCompositeOperation = 'lighter';
+        g.fillStyle = `rgba(150,180,255,${0.18 * flash})`;
+        g.fillRect(0, 0, W, H);
+        g.restore();
+      }
+      // 機械の小さな灯り（暗くても見える）
+      for (const [x, y, c, k] of [[44, 74, '#ff4a3a', 0], [378, 54, '#4aff8a', 1], [214, 274, '#ff4a3a', 2], [56, 434, '#ffcf4a', 3], [346, 484, '#4aff8a', 4]]) {
+        if (Math.sin(t * (1.5 + k * 0.4) + k) > -0.2) rect(g, x, y, 3, 3, c);
+      }
+    }
+
+    // 幽霊（前の自分の動き）
+    let ghost = null;
+    function drawGhost(g, s, t) {
+      if (!ghost) return;
+      const d = ghost.d;
+      if (ghost.screenIndex() !== s) return;
+      const rx = Math.round(d.x * S), ry = Math.round((d.y - s * C.SCREEN_H) * S);
+      const cx = rx + (C.P.dollW * S) / 2, feet = ry + C.P.dollH * S;
+      g.save();
+      g.globalAlpha = 0.42;
+      g.translate(cx, feet);
+      g.scale(d.facing, 1);
+      if (d.state === 'down') {
+        g.rotate(-Math.PI / 2);
+        g.drawImage(GHOST.idle, -3, -12);
+      } else {
+        let frame = 'idle';
+        if (d.state === 'walking' && d.grounded) frame = ['a', 'idle', 'b', 'idle'][Math.floor(t * 10) % 4];
+        else if (!d.grounded && d.vy < 0) frame = 'tuck';
+        g.drawImage(GHOST[frame], -8, -24);
+      }
+      g.restore();
+    }
+
     function drawRuns(g, s, t) {
       for (const run of runs[s]) {
         const y = run.r * T;
@@ -1090,7 +1739,7 @@
           if (x > run.c1 * T && x < (run.c2 + 1) * T - 6) rect(g, x, y + 1, 6, 1, '#f0e2ff');
           continue;
         }
-        const dir = run.ch === '>' ? 1 : -1;
+        const dir = (run.ch === '>' ? 1 : -1) * (sim.beltFlip ? -1 : 1);
         const x1 = run.c1 * T, x2 = (run.c2 + 1) * T;
         rect(g, x1, y, x2 - x1, 4, '#3b3f47');
         const phase = (((t * C.P.conveyor * S * dir) % 8) + 8) % 8;
@@ -1306,23 +1955,31 @@
       if (DYN[theme]) DYN[theme](ctx, t);
       ctx.drawImage(statics[s].fg, 0, 0);
       drawRuns(ctx, s, t);
+      drawRust(ctx, s, t);
+      drawVents(ctx, s, t);
+      drawMagnets(ctx, s, t);
+      drawCuckoos(ctx, s, t);
       drawMovers(ctx, s);
       drawBell(ctx, s, t);
+      drawGhost(ctx, s, t);
       if (!(d.hurtT > 0 && Math.floor(t * 16) % 2)) drawDoll(ctx, s, t);
       drawBees(ctx, s, t);
       drawParticles(ctx, s, dt);
+      drawDark(ctx, s, t);
       drawGauge(ctx, s);
       ctx.drawImage(vignette, 0, 0);
+      drawWind(ctx, s, t);
       // 金色の輪は周りを暗くする絵の上に描き、暗い階でも見えるようにする
       drawGuard(ctx, s, t);
     }
 
     function reset() {
       particles.length = 0;
+      rustWas.length = 0;
       endT = null;
     }
 
-    return { render, onEvent, reset, buildStatic };
+    return { render, onEvent, reset, buildStatic, setGhost: (g) => (ghost = g) };
   }
 
   root.ZenmaiArt = { create: Art, SCALE: S, W, H, THEMES };

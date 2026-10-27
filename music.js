@@ -24,7 +24,7 @@
   // ---------- 曲 ----------
   // beats: 1小節の拍数。tracks の inst は楽器、drum は打楽器、chord: true は三和音で鳴らす。oct は半音でずらす量。
   const SONGS = {
-    // 1階 おもちゃ工房: オルゴールのワルツ
+    // ゼンマイ置き場（おもちゃ工房）:オルゴールのワルツ
     workshop: {
       bpm: 100, beats: 3, root: 60, scale: 'major',
       tracks: [
@@ -34,7 +34,7 @@
         { drum: 'tick', vel: 0.035, pat: 'x . . . x . . . x . . .' },
       ],
     },
-    // 2階 配管の機械室: 低くゆっくり、油のしずく
+    // 油の床（配管の機械室）:低くゆっくり、油のしずく
     oil: {
       bpm: 80, beats: 4, root: 57, scale: 'minor', delay: 0.25,
       tracks: [
@@ -46,7 +46,7 @@
         { drum: 'hat', vel: 0.02, pat: '. . x . . . x . . . x . . . x .' },
       ],
     },
-    // 3階 大歯車: 機械の刻み
+    // 歯車のベルト:機械の刻み
     gears: {
       bpm: 112, beats: 4, root: 62, scale: 'dorian',
       tracks: [
@@ -57,7 +57,7 @@
         { drum: 'tick', vel: 0.025, pat: 'x . x . x . x . x . x . x . x .' },
       ],
     },
-    // 4階 ねじ巻きの間: はずむ弦
+    // ねじ巻きの間:はずむ弦
     winding: {
       bpm: 120, beats: 4, root: 65, scale: 'major',
       tracks: [
@@ -67,7 +67,7 @@
         { drum: 'thump', vel: 0.1, pat: 'x . . . . . . . x . . . . . . .' },
       ],
     },
-    // 5階 振り子の間: ゆっくりした3拍子とチクタク
+    // 振り子の間:ゆっくりした3拍子とチクタク
     pendulum: {
       bpm: 72, beats: 3, root: 64, scale: 'minor', delay: 0.3,
       tracks: [
@@ -77,7 +77,7 @@
         { drum: 'tock', vel: 0.05, pat: '. . . . x . . . . . . .' },
       ],
     },
-    // 6階 ハチの巣: 羽音と細かい刻み
+    // ハチの巣:羽音と細かい刻み
     hive: {
       bpm: 132, beats: 4, root: 57, scale: 'phrygian',
       tracks: [
@@ -87,7 +87,7 @@
         { drum: 'thump', vel: 0.11, pat: 'x . . . . . x . x . . . . . . .' },
       ],
     },
-    // 7階 女王の間: ハチの巣を速く重く
+    // 女王の間:ハチの巣を速く重く
     queen: {
       bpm: 144, beats: 4, root: 57, scale: 'phrygian',
       tracks: [
@@ -98,7 +98,7 @@
         { drum: 'thump', vel: 0.13, pat: 'x . . x . . x . x . . x . . x .' },
       ],
     },
-    // 8階 大時計: 鐘のような旋律と時を刻む音
+    // 大時計:鐘のような旋律と時を刻む音
     clock: {
       bpm: 100, beats: 4, root: 55, scale: 'major', delay: 0.2,
       tracks: [
@@ -109,7 +109,7 @@
         { drum: 'tock', vel: 0.06, pat: 'x . . . . . . . . . . . . . . .' },
       ],
     },
-    // 9階 せまい梁: 夜の分散和音
+    // せまい梁:夜の分散和音
     beams: {
       bpm: 84, beats: 4, root: 62, scale: 'minor', delay: 0.35,
       tracks: [
@@ -118,13 +118,89 @@
         { drum: 'tick', vel: 0.03, pat: 'x . . . . . . . x . . . . . . .' },
       ],
     },
-    // 10階 鐘楼: 星空と小さな鐘
+    // 鐘楼:星空と小さな鐘
     belfry: {
       bpm: 90, beats: 4, root: 67, scale: 'penta', delay: 0.4,
       tracks: [
         { inst: 'bell', vel: 0.08, pat: '4 . . . . . . . 2 . . . 7 . . . | . . . . 9 . . . 7 . . . . . . . | 5 . . . . . . . 4 . . . 2 . . . | . . . . 0 . . . . . . . . . . .' },
         { inst: 'pad', vel: 0.05, chord: true, oct: -12, pat: '0 - - - - - - - - - - - - - - - | 3 - - - - - - - - - - - - - - - | 1 - - - - - - - - - - - - - - - | 0 - - - - - - - - - - - - - - -' },
         { inst: 'box', vel: 0.04, oct: 12, pat: '. . 7 . . . 9 . . . 7 . . . 4 . | . . 9 . . . 11 . . . 9 . . . 7 .' },
+      ],
+    },
+    // 蒸気の配管: 汽車のような刻みと、噴き出す息
+    steam: {
+      bpm: 96, beats: 4, root: 55, scale: 'minor', delay: 0.2,
+      tracks: [
+        { inst: 'sqbass', vel: 0.15, oct: -12, pat: '0 . 0 0 . 0 0 . 3 . 3 3 . 3 2 . | 0 . 0 0 . 0 0 . -2 . -2 -2 . -1 0 .' },
+        { inst: 'pluck', vel: 0.09, oct: 12, pat: '4 . . 2 . . 4 . 5 . . 4 . . 2 . | 4 . . 2 . . 0 . -1 . . 0 . . . .' },
+        { inst: 'pad', vel: 0.04, chord: true, pat: '0 - - - - - - - 3 - - - - - - - | 0 - - - - - - - -2 - - - - - - -' },
+        { drum: 'hat', vel: 0.03, pat: '. x x . . x x . . x x . . x x .' },
+        { drum: 'thump', vel: 0.12, pat: 'x . . . x . . . x . . . x . . .' },
+      ],
+    },
+    // 逆巻きの間: 下りていく音形と、裏返った拍
+    reverse: {
+      bpm: 104, beats: 4, root: 64, scale: 'major', delay: 0.3,
+      tracks: [
+        { inst: 'box', vel: 0.12, pat: '. . 7 - . 5 . 4 . 2 . 0 - - . . | . . 6 - . 4 . 3 . 1 . -1 - - . .' },
+        { inst: 'box', vel: 0.05, oct: 12, pat: '. 4 . 2 . 0 . -1 . 0 . 2 . 4 . . | . 3 . 1 . -1 . -2 . -1 . 1 . 3 . .' },
+        { inst: 'bass', vel: 0.17, oct: -12, pat: '. . 0 . . . 0 . . . 3 . . . 4 . | . . -1 . . . -1 . . . 3 . . . 4 .' },
+        { drum: 'tock', vel: 0.05, pat: '. . x . . . x . . . x . . . x .' },
+        { drum: 'tick', vel: 0.03, pat: '. x . x . x . x . x . x . x . x' },
+      ],
+    },
+    // 鳩時計の間: 「カッコー」の音程と木の時計の刻み
+    cuckoo: {
+      bpm: 116, beats: 3, root: 65, scale: 'major',
+      tracks: [
+        { inst: 'box', vel: 0.15, oct: 12, pat: '4 . 2 . . . 4 . 2 . . . | 5 . 4 . 2 . 0 . . . . . | 4 . 2 . . . 4 . 2 . . . | 3 . 1 . -1 . 0 . . . . .' },
+        { inst: 'pluck', vel: 0.06, pat: '0 . 2 . 4 . 0 . 2 . 4 . | 3 . 5 . 7 . 3 . 5 . 7 . | 0 . 2 . 4 . 0 . 2 . 4 . | -1 . 1 . 4 . 0 . 2 . 4 .' },
+        { inst: 'bass', vel: 0.18, oct: -12, pat: '0 . . . . . 4 . . . . . | 3 . . . . . 3 . . . . . | 0 . . . . . 4 . . . . . | 4 . . . . . 0 . . . . .' },
+        { drum: 'tick', vel: 0.04, pat: 'x . . . x . . . x . . .' },
+        { drum: 'clack', vel: 0.03, pat: '. . x . . . x . . . x .' },
+      ],
+    },
+    // 停電の機械室: 暗い持続音と、遠くの雷
+    dark: {
+      bpm: 66, beats: 4, root: 52, scale: 'phrygian', delay: 0.45,
+      tracks: [
+        { inst: 'pad', vel: 0.06, chord: true, oct: -12, pat: '0 - - - - - - - - - - - - - - - | 1 - - - - - - - - - - - - - - -' },
+        { inst: 'pluck', vel: 0.07, oct: 12, pat: '. . . . 4 . . . . . . . 3 . . . | . . . . . . 1 . . . . . 0 . . .' },
+        { inst: 'bass', vel: 0.14, oct: -12, pat: '0 . . . . . . . . . . . . . . . | 1 . . . . . . . 0 . . . . . . .' },
+        { drum: 'drip', vel: 0.04, pat: '. . . . . . . . . . x . . . . . | . . . x . . . . . . . . . . . .' },
+        { drum: 'thump', vel: 0.07, pat: 'x . . . . . . . . . . . . . . . | . . . . . . . . x . . . . . . .' },
+      ],
+    },
+    // 磁石の間: うなる電気と細かい分散和音
+    magnet: {
+      bpm: 108, beats: 4, root: 57, scale: 'dorian',
+      tracks: [
+        { inst: 'buzz', vel: 0.025, oct: -12, pat: '0 - - - - - - - - - - - - - - - | -2 - - - - - - - - - - - - - - -' },
+        { inst: 'pluck', vel: 0.08, oct: 12, pat: '0 2 4 2 0 2 4 6 0 2 4 2 0 2 4 7 | -2 0 2 0 -2 0 2 4 -2 0 2 0 -1 1 3 5' },
+        { inst: 'sqbass', vel: 0.12, oct: -12, pat: '0 . . . 0 . . . 0 . . 0 . . 0 . | -2 . . . -2 . . . -2 . . -2 . . -1 .' },
+        { drum: 'clack', vel: 0.04, pat: '. . x . . . x . . . x . . x x .' },
+        { drum: 'thump', vel: 0.11, pat: 'x . . . . . . . x . . . . . . .' },
+      ],
+    },
+    // 錆びた梁: きしむ低い音と、ゆっくり下る旋律
+    rust: {
+      bpm: 84, beats: 4, root: 50, scale: 'minor', delay: 0.3,
+      tracks: [
+        { inst: 'pluck', vel: 0.09, oct: 12, pat: '7 . . 5 . . 4 . 3 . . 2 . . 0 . | 4 . . 3 . . 2 . 0 . . -1 . . 0 .' },
+        { inst: 'pad', vel: 0.045, chord: true, pat: '0 - - - - - - - -2 - - - - - - - | -3 - - - - - - - -1 - - - - - - -' },
+        { inst: 'bass', vel: 0.17, oct: -12, pat: '0 . . . . . . . -2 . . . . . . . | -3 . . . . . . . -1 . . . . . . .' },
+        { drum: 'tock', vel: 0.05, pat: 'x . . . . . x . . . x . . . . .' },
+        { drum: 'clack', vel: 0.02, pat: '. . . . . . . . . . . . . . x .' },
+      ],
+    },
+    // 塔の外壁: 風の中のひらけた旋律
+    outside: {
+      bpm: 92, beats: 4, root: 62, scale: 'penta', delay: 0.35,
+      tracks: [
+        { inst: 'pluck', vel: 0.09, oct: 12, pat: '0 . 2 . 4 . . . 5 . 4 . 2 . . . | 3 . 4 . 2 . . . 0 . . . . . . .' },
+        { inst: 'pad', vel: 0.05, chord: true, oct: -12, pat: '0 - - - - - - - - - - - - - - - | 3 - - - - - - - 4 - - - - - - -' },
+        { inst: 'bell', vel: 0.04, oct: 12, pat: '. . . . . . . . . . . . 7 . . . | . . . . . . . . 9 . . . . . . .' },
+        { drum: 'hat', vel: 0.02, pat: 'x . x . x . x . x . x . x . x .' },
       ],
     },
   };
