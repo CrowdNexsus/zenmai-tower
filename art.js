@@ -305,6 +305,15 @@
   for (const k of Object.keys(DOLL_PAL)) GHOST_PAL[k] = k === 'k' || k === 'e' ? '#4a6a9a' : '#bcd8ff';
   const GHOST = {};
   for (const k of Object.keys(LEGS)) GHOST[k] = sprite(DOLL_TOP.concat(LEGS[k]), GHOST_PAL);
+  // ハート（倒れて失ったとき、人形の上に浮かんで割れる）
+  const HEART = sprite([
+    '.kk.kk.',
+    'kRrkrrk',
+    'krrrrrk',
+    '.krrrk.',
+    '..krk..',
+    '...k...',
+  ], { k: '#5a0e18', r: '#e8394a', R: '#ffb0b8' });
 
   // ---------- 足場の並び ----------
   function runsOf(level, s) {
@@ -1667,8 +1676,14 @@
       g.font = '14px "DotGothic16", monospace';
       g.textAlign = 'center';
       g.fillStyle = nx.in < 1 ? '#ffe08a' : '#e8e2f8';
-      const label = dir < 0 ? '← 風' : dir > 0 ? '風 →' : '風 なし';
-      g.fillText(nx.in < 1 ? `${label}（もうすぐ${nx.dir < 0 ? '←' : nx.dir > 0 ? '→' : 'やむ'}）` : label, vx - 10, vy + 64);
+      const next = nx.dir < 0 ? '←' : nx.dir > 0 ? '→' : null;
+      if (lang === 'en') {
+        const label = dir < 0 ? '← Wind' : dir > 0 ? 'Wind →' : 'No wind';
+        g.fillText(nx.in < 1 ? `${label} (soon ${next || 'calm'})` : label, vx - 10, vy + 64);
+      } else {
+        const label = dir < 0 ? '← 風' : dir > 0 ? '風 →' : '風 なし';
+        g.fillText(nx.in < 1 ? `${label}（もうすぐ${next || 'やむ'}）` : label, vx - 10, vy + 64);
+      }
     }
 
     // 停電: 人形のまわりだけ見え、稲光で一瞬全体が見える
@@ -1902,6 +1917,50 @@
         }
       } else if (e === 'bell') {
         endT = lastT;
+      } else if (e === 'heart') {
+        lost.push({ x: fx, y: fy - 34, t: 0 });
+      }
+    }
+
+    // 失ったハート: 1秒浮かんで、最後に左右に割れて消える
+    const lost = [];
+    function drawLost(g, s, dt) {
+      g.imageSmoothingEnabled = false;
+      for (let i = lost.length - 1; i >= 0; i--) {
+        const h = lost[i];
+        h.t += dt;
+        if (h.t >= 1.4) {
+          lost.splice(i, 1);
+          continue;
+        }
+        const ry = h.y - s * H - h.t * 26;
+        const split = Math.max(0, h.t - 0.8) * 40;
+        g.globalAlpha = h.t < 0.9 ? 1 : 1 - (h.t - 0.9) / 0.5;
+        const x = Math.round(h.x - 10.5), y = Math.round(ry);
+        g.drawImage(HEART, 0, 0, 4, 6, Math.round(x - split), y + Math.round(split / 2), 12, 18);
+        g.drawImage(HEART, 4, 0, 3, 6, Math.round(x + 12 + split), y + Math.round(split / 2), 9, 18);
+      }
+      g.globalAlpha = 1;
+    }
+
+    // いちばん高く登った所の旗（金 = これまで、銀 = この挑戦）。人形がその高さにいるときは出さない
+    let marks = { run: null, top: null };
+    // 絵の中の文字（風見鶏）のことば
+    let lang = 'ja';
+    function drawMarks(g, s, t) {
+      const d = sim.d;
+      const seen = [];
+      for (const [y, col] of [[marks.top, '#ffd860'], [marks.run, '#c9d4e6']]) {
+        if (!Number.isFinite(y) || Math.abs(d.y - y) < 14 || seen.some((v) => Math.abs(v - y) < 2)) continue;
+        seen.push(y);
+        const ry = Math.round((y + C.P.dollH - s * C.SCREEN_H) * S);
+        if (ry < 0 || ry > H) continue;
+        g.globalAlpha = 0.5;
+        for (let x = 22; x < W; x += 14) rect(g, x, ry, 7, 2, col);
+        g.globalAlpha = 0.9 + 0.1 * Math.sin(t * 3);
+        rect(g, 8, ry - 22, 2, 24, '#2a1f14');
+        for (let i = 0; i < 10; i++) rect(g, 10, ry - 22 + i, Math.max(1, Math.round(14 * (1 - Math.abs(i - 4.5) / 5))), 1, col);
+        g.globalAlpha = 1;
       }
     }
 
@@ -1961,6 +2020,7 @@
       drawCuckoos(ctx, s, t);
       drawMovers(ctx, s);
       drawBell(ctx, s, t);
+      drawMarks(ctx, s, t);
       drawGhost(ctx, s, t);
       if (!(d.hurtT > 0 && Math.floor(t * 16) % 2)) drawDoll(ctx, s, t);
       drawBees(ctx, s, t);
@@ -1971,15 +2031,18 @@
       drawWind(ctx, s, t);
       // 金色の輪は周りを暗くする絵の上に描き、暗い階でも見えるようにする
       drawGuard(ctx, s, t);
+      // 失ったハートも、暗い階で見えるように最後に描く
+      drawLost(ctx, s, dt);
     }
 
     function reset() {
       particles.length = 0;
+      lost.length = 0;
       rustWas.length = 0;
       endT = null;
     }
 
-    return { render, onEvent, reset, buildStatic, setGhost: (g) => (ghost = g) };
+    return { render, onEvent, reset, buildStatic, setGhost: (g) => (ghost = g), setMarks: (m) => (marks = m), setLang: (l) => (lang = l) };
   }
 
   root.ZenmaiArt = { create: Art, SCALE: S, W, H, THEMES };

@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>ゼンマイの塔</title>
-<meta name="description" content="ゼンマイ人形を巻いて跳ばせ、10階建ての時計塔のてっぺんの鐘を目指すゲーム（試作版）">
+<meta name="description" content="ゼンマイ人形を巻いて跳ばせ、17階建ての時計塔のてっぺんの鐘を目指すゲーム（試作版）">
 <meta property="og:title" content="ゼンマイの塔">
-<meta property="og:description" content="ゼンマイ人形を巻いて跳ばせ、10階建ての時計塔のてっぺんの鐘を目指すゲーム（試作版）">
+<meta property="og:description" content="ゼンマイ人形を巻いて跳ばせ、17階建ての時計塔のてっぺんの鐘を目指すゲーム（試作版）">
 <meta name="robots" content="noindex">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,6 +59,9 @@
   h1, h2 { white-space: nowrap; }
   h1 { font-size: clamp(20px, 9.5cqw, 46px); letter-spacing: 0.12em; }
   h2 { font-size: clamp(18px, 8cqw, 36px); letter-spacing: 0.1em; }
+  :root[lang=en] h1, :root[lang=en] h2 { letter-spacing: 0.03em; }
+  /* ことばの切り替えは、メニューの右上の小さなボタン */
+  .overlay #btn-lang { position: absolute; top: 2cqw; right: 2cqw; min-width: 0; padding: 2px 8px; font-size: clamp(10px, 2.8cqw, 13px); }
   .sub { margin: 0; color: var(--muted); font-size: 13px; }
   .how { margin: 0 0 1cqw; padding: 0; list-style: none; font-size: clamp(11px, 3.3cqw, 15px); line-height: 1.6; text-align: left; }
   .how li::before { content: "・"; color: var(--accent); }
@@ -101,6 +104,25 @@
   .overlay input[type=text] { flex: 1.4; min-width: 0; font: inherit; font-size: clamp(12px, 3.4cqw, 16px); color: var(--text);
     background: #0d0b12; border: 2px solid var(--line); border-radius: 4px; padding: 6px 8px; user-select: text; -webkit-user-select: text; }
   .overlay input[hidden], .overlay .row button[hidden] { display: none; }
+  .overlay textarea { width: 92%; min-height: 3.6em; font: 11px/1.3 ui-monospace, Consolas, monospace; color: var(--text); background: #0d0b12;
+    border: 2px solid var(--line); border-radius: 4px; padding: 4px 6px; resize: none; user-select: text; -webkit-user-select: text; word-break: break-all; }
+  .overlay hr { width: 92%; border: 0; border-top: 1px solid var(--line); margin: 1cqw 0; }
+  #hud-hearts { display: inline-block; color: #e8394a; letter-spacing: 1px; }
+  #end-hearts { color: #e8394a; }
+  #hud-hearts.hit { animation: heart-hit 0.3s 4; }
+  @keyframes heart-hit { 50% { opacity: 0.15; transform: scale(1.35); } }
+  /* 塔の地図: 右の細い帯。17階ぶんの目盛り、金 = これまでの最高、銀 = この挑戦の最高、点 = いま */
+  #map { position: absolute; right: 1.4cqw; top: 9%; bottom: 4%; width: max(5px, 1.5cqw); border: 1px solid rgba(232, 181, 74, 0.4);
+    border-radius: 3px; pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(20, 16, 24, 0.55) 0, rgba(20, 16, 24, 0.55) calc(100% / 17 - 1px),
+      rgba(241, 230, 207, 0.25) calc(100% / 17 - 1px), rgba(241, 230, 207, 0.25) calc(100% / 17)); }
+  #map[hidden] { display: none; }
+  #map i { position: absolute; left: -3px; right: -3px; height: 2px; margin-top: -1px; }
+  #map i[hidden] { display: none; }
+  #map .m-top { background: #ffd860; }
+  #map .m-run { background: #c9d4e6; }
+  #map .m-me { left: 50%; right: auto; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 50%; background: var(--accent);
+    box-shadow: 0 0 0 1px #2a1a08, 0 0 6px rgba(232, 181, 74, 0.8); }
   .pad { width: var(--stage-w); display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 8px; margin-top: auto; }
   .pad button { height: 64px; font-size: 20px; touch-action: none; }
   .pad button.big { background: #3a2f1c; border-color: var(--accent); color: var(--accent); font-size: 17px; font-weight: 700; }
@@ -130,105 +152,145 @@
     <div class="hud-top">
       <span id="hud-area"></span>
       <span class="hud-buttons">
-        <button id="btn-warp" type="button" hidden>階えらび</button>
-        <button id="btn-menu" type="button">メニュー</button>
+        <button id="btn-warp" type="button" hidden data-t="b_warp">階えらび</button>
+        <button id="btn-menu" type="button" data-t="b_menu">メニュー</button>
       </span>
     </div>
     <div class="hud-stats">
+      <span id="hud-hearts"></span>
       <span id="hud-wind"></span>
       <span id="hud-time"></span>
       <span id="hud-winds"></span>
       <span id="hud-jumps"></span>
-      <span id="hud-falls"></span>
     </div>
   </header>
   <div class="stage">
-    <canvas id="game" aria-label="ゲーム画面"></canvas>
+    <canvas id="game" data-t-aria="game_aria" aria-label="ゲーム画面"></canvas>
+    <div id="map" aria-hidden="true" hidden><i class="m-top" id="map-top" hidden></i><i class="m-run" id="map-run"></i><i class="m-me" id="map-me"></i></div>
     <div id="banner"></div>
     <div id="toast"></div>
     <div id="menu" class="overlay" hidden>
-      <h1>ゼンマイの塔</h1>
-      <p class="sub">試作版</p>
+      <h1 data-t="title">ゼンマイの塔</h1>
+      <p class="sub" data-t="sub">試作版</p>
       <ul class="how">
-        <li>長押しでゼンマイを巻く（最大24回）。離すと歩き出し、止まれない</li>
-        <li>歩いている間にもう一度押すと、残りを全部使って跳ぶ</li>
-        <li>空中では動かせない。壁に当たると跳ね返る</li>
-        <li>油・蜂蜜・ベルト・蒸気・磁石・風・鳩時計… 階ごとの仕掛けを見て登る</li>
-        <li>ハチは赤く光ってから突っ込んでくる（巻いている間は平気）</li>
-        <li>17階のてっぺんの鐘を鳴らせばゴール。毎正時に時報が鳴り、10秒間ベルトが逆に回る</li>
+        <li data-t="how1">長押しで巻き（最大24回）、離すと歩き出す。止まれない</li>
+        <li data-t="how2">歩いている間に押すと跳ぶ。空中では動かせない</li>
+        <li data-t="how4">階ごとの仕掛けを見て登る。ハチは巻いている間は平気</li>
+        <li data-t="how7">ハートは3つ。倒れると1つ減り、無くなると1階から</li>
+        <li data-t="how6">17階の鐘でゴール。毎正時の時報で10秒ベルトが逆回り</li>
       </ul>
       <button id="btn-continue" type="button">つづきから</button>
       <button id="btn-new" type="button">はじめる</button>
       <button id="btn-hard" type="button" hidden>むずかしい塔ではじめる</button>
       <div class="row">
-        <button id="btn-rank" type="button">ランキング</button>
-        <button id="btn-records" type="button">記録と称号</button>
-        <button id="btn-dev" type="button">開発者</button>
+        <button id="btn-rank" type="button" data-t="b_rank">ランキング</button>
+        <button id="btn-records" type="button" data-t="b_records">記録と称号</button>
+        <button id="btn-transfer" type="button" data-t="b_transfer">引き継ぎ</button>
+        <button id="btn-dev" type="button" data-t="b_dev">開発者</button>
       </div>
       <div class="row">
         <button id="btn-sound" type="button">効果音 あり</button>
         <button id="btn-music" type="button">音楽 あり</button>
         <button id="btn-ghost" type="button">幽霊 なし</button>
       </div>
+      <button id="btn-lang" type="button" lang="en">English</button>
     </div>
     <div id="rank" class="overlay" hidden>
-      <h2>ランキング</h2>
+      <h2 data-t="b_rank">ランキング</h2>
       <div class="row">
         <button id="rank-mode" type="button">塔 ふつう</button>
         <button id="rank-board" type="button">はやさ順</button>
       </div>
       <p class="note" id="rank-status"></p>
       <ol id="rank-list" class="ranklist"></ol>
-      <button id="rank-resend" type="button" hidden>送れなかった記録を送り直す</button>
-      <button id="rank-back" class="primary" type="button">もどる</button>
+      <button id="rank-resend" type="button" hidden data-t="rank_resend">送れなかった記録を送り直す</button>
+      <button id="rank-back" class="primary" type="button" data-t="back">もどる</button>
     </div>
     <div id="records" class="overlay" hidden>
-      <h2>記録と称号</h2>
+      <h2 data-t="h_records">記録と称号</h2>
       <dl id="rec-stats" class="recstats"></dl>
       <p class="note" id="rec-count"></p>
       <ul id="rec-titles" class="titles"></ul>
-      <button id="rec-back" class="primary" type="button">もどる</button>
+      <button id="rec-back" class="primary" type="button" data-t="back">もどる</button>
+    </div>
+    <div id="transfer" class="overlay" hidden>
+      <h2 data-t="h_transfer">記録の引き継ぎ</h2>
+      <p class="note" data-t="tr_note">パソコンとスマホで同じ記録を使うときに。書き出した文字（またはファイル）を、もう片方で読み込みます</p>
+      <button id="tr-export" type="button" data-t="tr_export">この端末の記録を書き出す</button>
+      <textarea id="tr-out" readonly hidden data-t-aria="tr_out_aria" aria-label="書き出した文字"></textarea>
+      <div class="row" id="tr-out-row" hidden>
+        <button id="tr-copy" type="button" data-t="tr_copy">コピー</button>
+        <button id="tr-save" type="button" data-t="tr_save">ファイルに保存</button>
+      </div>
+      <hr>
+      <textarea id="tr-in" data-t-ph="tr_in_ph" placeholder="書き出した文字をここに貼る" data-t-aria="tr_in_aria" aria-label="読み込む文字"></textarea>
+      <div class="row">
+        <button id="tr-file" type="button" data-t="tr_file">ファイルから</button>
+        <button id="tr-import" type="button" data-t="tr_import">読み込む</button>
+      </div>
+      <input id="tr-file-in" type="file" accept=".txt,text/plain" hidden>
+      <p class="note" id="tr-status"></p>
+      <button id="tr-back" class="primary" type="button" data-t="back">もどる</button>
     </div>
     <div id="dev" class="overlay" hidden>
-      <h2>開発者モード</h2>
-      <p class="note">押した階の入口へ移る（数字キー。11階より上は Shift と数字）。ふだんの記録は変わらない</p>
+      <h2 data-t="h_dev">開発者モード</h2>
+      <p class="note" data-t="dev_note">押した階の入口へ移る（数字キー。11階より上は Shift と数字）。ふだんの記録は変わらない</p>
       <div class="floors" id="dev-floors"></div>
       <div class="row">
         <button id="dev-guard" type="button">無敵 なし</button>
         <button id="dev-hard" type="button">塔 ふつう</button>
       </div>
-      <button id="dev-back" class="primary" type="button">遊びにもどる</button>
-      <button id="dev-exit" type="button">開発者モードをやめる</button>
+      <button id="dev-back" class="primary" type="button" data-t="dev_back">遊びにもどる</button>
+      <button id="dev-exit" type="button" data-t="dev_exit">開発者モードをやめる</button>
     </div>
     <div id="ending" class="overlay" hidden>
-      <h2>鐘が鳴った！</h2>
+      <h2 data-t="h_end">鐘が鳴った！</h2>
       <dl class="endstats">
-        <dt>塔</dt><dd id="end-mode"></dd>
-        <dt>かかった時間</dt><dd id="end-time"></dd>
-        <dt>巻いた回数</dt><dd id="end-winds"></dd>
-        <dt>跳んだ回数</dt><dd id="end-jumps"></dd>
-        <dt>落ちた回数</dt><dd id="end-falls"></dd>
-        <dt>いちばん長い落下</dt><dd id="end-drop"></dd>
+        <dt data-t="d_mode">塔</dt><dd id="end-mode"></dd>
+        <dt data-t="d_time">かかった時間</dt><dd id="end-time"></dd>
+        <dt data-t="d_winds">巻いた回数</dt><dd id="end-winds"></dd>
+        <dt data-t="d_jumps">跳んだ回数</dt><dd id="end-jumps"></dd>
+        <dt data-t="d_hearts">残りのハート</dt><dd id="end-hearts"></dd>
+        <dt data-t="d_drop">いちばん長い落下</dt><dd id="end-drop"></dd>
       </dl>
       <p class="note" id="end-titles" hidden></p>
-      <p class="note" id="end-note" hidden>むずかしい塔（巻いている間もハチに当たる）が、メニューから遊べるようになった</p>
+      <p class="note" id="end-note" hidden data-t="end_note">むずかしい塔（巻いている間もハチに当たる）が、メニューから遊べるようになった</p>
       <p class="note" id="end-rank-status"></p>
       <div class="row">
-        <input id="end-name" type="text" maxlength="10" placeholder="名前（10文字まで）" autocomplete="nickname" enterkeyhint="send">
-        <button id="end-send" type="button">ランキングに送る</button>
+        <input id="end-name" type="text" maxlength="10" data-t-ph="name_ph" placeholder="名前（10文字まで）" autocomplete="nickname" enterkeyhint="send">
+        <button id="end-send" type="button" data-t="end_send">ランキングに送る</button>
       </div>
       <div class="row">
-        <button id="end-rank" type="button">ランキングを見る</button>
-        <button id="btn-again" class="primary" type="button">もう一度登る</button>
+        <button id="end-rank" type="button" data-t="end_rank">ランキング</button>
+        <button id="end-share" type="button" data-t="share">結果を投稿</button>
+        <button id="end-img" type="button" data-t="save_img">画像を保存</button>
       </div>
+      <button id="btn-again" class="primary" type="button" data-t="again">もう一度登る</button>
+    </div>
+    <div id="gameover" class="overlay" hidden>
+      <h2 data-t="h_over">力尽きた…</h2>
+      <dl class="endstats">
+        <dt data-t="d_mode">塔</dt><dd id="over-mode"></dd>
+        <dt data-t="d_top">いちばん高く登った所</dt><dd id="over-top"></dd>
+        <dt data-t="d_time">かかった時間</dt><dd id="over-time"></dd>
+        <dt data-t="d_jumps">跳んだ回数</dt><dd id="over-jumps"></dd>
+        <dt data-t="d_drop">いちばん長い落下</dt><dd id="over-drop"></dd>
+      </dl>
+      <p class="note" data-t="over_note">ハートが無くなった。1階からやり直し</p>
+      <div class="row">
+        <button id="over-share" type="button" data-t="share">結果を投稿</button>
+        <button id="over-img" type="button" data-t="save_img">画像を保存</button>
+        <button id="over-menu" type="button" data-t="b_menu">メニュー</button>
+      </div>
+      <button id="over-retry" class="primary" type="button" data-t="retry">1階からやり直す</button>
     </div>
   </div>
   <div class="pad">
-    <button type="button" data-pad="left" aria-label="左を向く">◀</button>
-    <button type="button" data-pad="button" class="big">巻く ／ 跳ぶ</button>
-    <button type="button" data-pad="right" aria-label="右を向く">▶</button>
+    <button type="button" data-pad="left" data-t-aria="pad_left" aria-label="左を向く">◀</button>
+    <button type="button" data-pad="button" class="big" data-t="pad_big">巻く ／ 跳ぶ</button>
+    <button type="button" data-pad="right" data-t-aria="pad_right" aria-label="右を向く">▶</button>
   </div>
-  <p class="keys">← → で向きを決める ／ スペースを長押しで巻き、離すと歩く ／ 歩いている間にスペースで跳ぶ ／ Esc でメニュー</p>
+  <p class="keys" data-t="keys">← → で向きを決める ／ スペースを長押しで巻き、離すと歩く ／ 歩いている間にスペースで跳ぶ ／ Esc でメニュー</p>
 </main>
 <script src="levels.js"></script>
 <script src="core.js"></script>

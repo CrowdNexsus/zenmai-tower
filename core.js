@@ -7,7 +7,8 @@
   const DT = 1 / 120;
   // 物理の書き方を変えたら上げる（ランキングの記録は、同じ版どうしでしか確かめられない）
   // 3: 開き直したとき、止まるまでの時間も数える / 4: 開き直しても錆びた梁とハチの様子を引き継ぐ
-  const CORE_REV = 4;
+  // 5: ライフ制（倒れるたびにハートが1つ減り、0でゲームオーバー）
+  const CORE_REV = 5;
 
   // 三角関数と長さは、ブラウザごとに最後の桁が違うことがあるので、足し算・掛け算だけで計算する
   // （ランキングの記録をサーバーで再生したとき、遊んだ人の画面と1コマも違わないようにするため）
@@ -41,6 +42,8 @@
     jumpPerUnit: 3.5,
     splatHeight: 136,
     downTime: 0.9,
+    // ハートの数（倒れるたびに1つ減り、0になったらゲームオーバー）
+    hearts: 3,
     dollW: 6,
     dollH: 10,
     beeHover: 42,
@@ -287,6 +290,8 @@
       this.invincible = false;
       // beltFlip: 本物の時報（毎正時）でベルトの向きが逆になっている
       this.beltFlip = false;
+      // endless: 開発者モード（倒れてもハートが減らない）
+      this.endless = false;
       this.reset();
     }
 
@@ -312,7 +317,9 @@
       };
       // steps: 進めた回数（ランキングの時間はこれ÷120） / winds: 巻いた回数の合計
       // maxDrop・totalDrop: 倒れた落下のいちばん長い・合計の高さ（px） / maxDropFloors: 1回で落ちた階の数 / fullDrop: 鐘楼から1階まで落ちた
-      this.stats = { time: 0, steps: 0, jumps: 0, falls: 0, winds: 0, stings: 0, maxDrop: 0, maxDropFloors: 0, totalDrop: 0, fullDrop: 0, best: this.d.y };
+      // hearts: 残りのハート（0でゲームオーバー＝ over）
+      this.stats = { time: 0, steps: 0, jumps: 0, falls: 0, winds: 0, stings: 0, maxDrop: 0, maxDropFloors: 0, totalDrop: 0, fullDrop: 0, best: this.d.y, hearts: P.hearts };
+      this.over = false;
       this.clock = 0;
       this.resetRust();
       this.resetBees();
@@ -350,6 +357,7 @@
         bees: this.bees.map((b) => Object.assign({}, b)),
         prevButton: this.prevButton,
         ended: this.ended,
+        over: this.over,
         hard: this.hard,
         beltFlip: this.beltFlip,
         rust: this.rust.map((b) => Object.assign({}, b)),
@@ -367,6 +375,7 @@
       this.updateMovers(false);
       this.prevButton = s.prevButton;
       this.ended = s.ended;
+      this.over = !!s.over;
       if (typeof s.hard === 'boolean') this.hard = s.hard;
       if (typeof s.beltFlip === 'boolean') this.beltFlip = s.beltFlip;
     }
@@ -394,12 +403,20 @@
       // 噴き出し口の上で真上に飛ばされ続けるなど、15秒で止まらないときは、最後に立っていた場所にする
       let fallback = null, settled = false;
       for (let i = 0; i < 15 / DT; i++) {
+        // 最後のハートを失う落下の途中で閉じても、ゲームオーバーは消えない（ハート0の保存になる）
+        if (probe.over) {
+          const out = probe.saveData();
+          out.at = this.stats.steps;
+          return out;
+        }
         const d = probe.d;
         const gt = d.grounded ? probe.groundTile() : null;
         // 動く板の上で止まっているなら、その場で保存してよい（板の位置は clock で決まる）
-        // ベルト・崩れる梁・噴き出し口の上は止まり続けられないので、その先まで進める
+        // ベルト・噴き出し口の上は止まり続けられないので、その先まで進める
+        // 錆びた梁の上はその場で保存する（崩れるまでの時間も保存に入るので、開き直しても続きは同じ。メニューで止めるのと同じ）。
+        // 前は先まで進めていたので、梁の上で閉じると開き直したときに落ちていて、ハートが減った（2026-10-28 検査係）
         if (d.grounded && d.state === 'idle' && gt) {
-          if (!'><rv'.includes(gt)) {
+          if (!'><v'.includes(gt)) {
             settled = true;
             break;
           }
@@ -462,6 +479,13 @@
           this.stats[k] = Number.isFinite(v) && v >= 0 ? v : 0;
         }
       } else exact = false;
+      const hv = o.stats && o.stats.hearts;
+      if (Number.isInteger(hv) && hv >= 0 && hv <= P.hearts) this.stats.hearts = hv;
+      else {
+        this.stats.hearts = P.hearts;
+        exact = false;
+      }
+      this.over = this.stats.hearts <= 0 && !this.endless;
       this.loadExact = exact;
       const best = o.stats && o.stats.best;
       this.stats.best = Math.min(Number.isFinite(best) ? best : Infinity, d.y);
@@ -527,7 +551,7 @@
     }
 
     step(input) {
-      if (this.ended) return;
+      if (this.ended || this.over) return;
       const d = this.d;
       const ev = this.events;
       const press = input.button && !this.prevButton;
@@ -671,7 +695,7 @@
       if (!d.grounded) d.peakY = Math.min(d.peakY, d.y);
       if (d.y < this.stats.best) this.stats.best = d.y;
 
-      if (this.touchesBell()) {
+      if (!this.over && this.touchesBell()) {
         this.ended = true;
         ev.push('bell');
       }
@@ -985,6 +1009,14 @@
         st.maxDropFloors = Math.max(st.maxDropFloors, here - top);
         if (top === 0 && here === this.level.screenCount - 1) st.fullDrop = 1;
         this.events.push('splat');
+        if (!this.endless && st.hearts > 0) {
+          st.hearts--;
+          this.events.push('heart');
+          if (st.hearts === 0) {
+            this.over = true;
+            this.events.push('gameover');
+          }
+        }
       } else {
         this.events.push('land');
         d.state = d.wind > 0 ? 'walking' : 'idle';
@@ -1024,7 +1056,7 @@
     }
 
     get done() {
-      return this.sim.ended || !!this.error;
+      return this.sim.ended || this.sim.over || !!this.error;
     }
 
     applyCode(code) {
