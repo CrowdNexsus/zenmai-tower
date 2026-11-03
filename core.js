@@ -8,7 +8,10 @@
   // 物理の書き方を変えたら上げる（ランキングの記録は、同じ版どうしでしか確かめられない）
   // 3: 開き直したとき、止まるまでの時間も数える / 4: 開き直しても錆びた梁とハチの様子を引き継ぐ
   // 5: ライフ制（倒れるたびにハートが1つ減り、0でゲームオーバー）
-  const CORE_REV = 5;
+  // 6: 錆びた梁が崩れるまで 1.5秒 → 2.5秒。むずかしい塔は別の配置（levels.js の hard）
+  // 7: 各階のハート（拾うと1つ増える。1回の挑戦で1回だけ）。ハチ・鳩に当たってもハートが減る（鳩の後も1.2秒当たらない）。
+  //    ハートの数: ふつう 3から・最大5、むずかしい 2から・最大3
+  const CORE_REV = 7;
 
   // 三角関数と長さは、ブラウザごとに最後の桁が違うことがあるので、足し算・掛け算だけで計算する
   // （ランキングの記録をサーバーで再生したとき、遊んだ人の画面と1コマも違わないようにするため）
@@ -42,8 +45,11 @@
     jumpPerUnit: 3.5,
     splatHeight: 136,
     downTime: 0.9,
-    // ハートの数（倒れるたびに1つ減り、0になったらゲームオーバー）
+    // ハートの数（倒れる・ハチや鳩に当たるたびに1つ減り、0になったらゲームオーバー）。各階のハートを拾うと最大まで増える
     hearts: 3,
+    heartsMax: 5,
+    hardHearts: 2,
+    hardHeartsMax: 3,
     dollW: 6,
     dollH: 10,
     beeHover: 42,
@@ -62,7 +68,7 @@
     ventOn: 0.45,
     ventReach: 3,
     // 錆びた梁: 乗ってから崩れるまで・崩れてから戻るまで（秒）
-    rustTime: 1.5,
+    rustTime: 2.5,
     rustDown: 4,
     // 磁石: 届く距離（px）といちばん近くでの引く強さ（px/秒²）
     magnetRange: 92,
@@ -82,9 +88,40 @@
   // K: ねじ巻き台（36回まで巻ける） / h: 蜂蜜の床（半分しか歩けない）
   // v: 蒸気の噴き出し口 / r: 錆びた梁（乗ると崩れる）
   const SOLID = { '#': 1, '=': 1, '>': 1, '<': 1, K: 1, h: 1, v: 1, r: 1 };
+  const heartStart = (hard) => (hard ? P.hardHearts : P.hearts);
+  const heartMax = (hard) => (hard ? P.hardHeartsMax : P.heartsMax);
+
+  // ステージを組み立てる。def.hard（階の名前ごとの差しかえ）があれば、むずかしい塔の配置も作って hardLevel に入れる。
+  // 階の名前・見た目・風などは同じで、足場と仕掛けの位置だけが違う（Sim は hard を切りかえると配置も切りかえる）
+  const HARD_KEYS = ['items', 'movers', 'bees', 'vents', 'magnets', 'cuckoos', 'start'];
+  // 各階のハート: def.hearts（ふつう）・def.heartsHard（むずかしい）に { 階の名前: [行, 列] }
+  function withHearts(screens, table, label) {
+    if (!table) return screens;
+    for (const name of Object.keys(table)) {
+      if (!screens.some((s) => s.name === name)) throw new Error(`${label}のハートの「${name}」という階がありません`);
+    }
+    return screens.map((s) => (table[s.name] ? Object.assign({}, s, { heart: table[s.name] }) : s));
+  }
+  function buildLevel(def) {
+    const normal = buildOne({ screens: withHearts(def.screens, def.hearts, 'ふつうの塔') });
+    let hard = normal;
+    if (def.hard) {
+      for (const name of Object.keys(def.hard)) {
+        if (!def.screens.some((s) => s.name === name)) throw new Error(`むずかしい塔の「${name}」という階がありません`);
+        for (const k of Object.keys(def.hard[name])) {
+          if (!HARD_KEYS.includes(k)) throw new Error(`むずかしい塔の「${name}」の ${k} は差しかえられません`);
+        }
+      }
+      const screens = def.screens.map((s) => Object.assign({}, s, def.hard[s.name]));
+      hard = buildOne({ screens: withHearts(screens, def.heartsHard, 'むずかしい塔') });
+    }
+    normal.normal = hard.normal = normal;
+    normal.hardLevel = hard.hardLevel = hard;
+    return normal;
+  }
 
   // 画面ごとの部品の一覧から、1文字1マスの地図を作る
-  function buildLevel(def) {
+  function buildOne(def) {
     const n = def.screens.length;
     const grid = [];
     let start = null;
@@ -151,6 +188,17 @@
     });
     if (!start) throw new Error('スタート位置がありません');
     if (!bells.length) throw new Error('鐘がありません');
+    // 各階のハート（1マス。足場の上の空いたマスに置く）
+    const hearts = [];
+    def.screens.forEach((scr, si) => {
+      if (!scr.heart) return;
+      const [r, c] = scr.heart;
+      if (!(r >= 1 && r < ROWS && c >= 1 && c < COLS - 1) || grid[si * ROWS + r][c] !== '.') {
+        throw new Error(`画面「${scr.name}」のハート ${JSON.stringify(scr.heart)} が空いたマスにありません`);
+      }
+      hearts.push({ screen: si, tx: c, ty: si * ROWS + r });
+    });
+    if (hearts.length > 30) throw new Error('ハートが多すぎます（30まで）');
     // 錆びた梁: 横につながった r を1本の梁として、まとめて崩れる
     const rusts = [];
     const rustIdx = new Int16Array(grid.length * COLS).fill(-1);
@@ -196,6 +244,7 @@
       rusts,
       rustIdx,
       spawns,
+      hearts,
       screenCount: n,
       names: def.screens.map((s) => s.name),
       themes: def.screens.map((s) => s.theme || 'belfry'),
@@ -282,11 +331,13 @@
 
   class Sim {
     constructor(level) {
-      this.level = level;
+      // base: ふつうの塔の配置（むずかしい塔の配置を渡されても、ふつうから始める）
+      this.base = level.normal || level;
+      this.level = this.base;
       this.events = [];
-      this.movers = level.movers.map((m) => Object.assign({ x: 0, y: 0, px: 0, py: 0, a: 0 }, m));
-      // hard: むずかしい塔（巻いている間もハチに当たる） / invincible: 開発者モードの「ハチに当たらない」
-      this.hard = false;
+      this.movers = this.level.movers.map((m) => Object.assign({ x: 0, y: 0, px: 0, py: 0, a: 0 }, m));
+      // hard: むずかしい塔（巻いている間もハチに当たる。配置も違う） / invincible: 開発者モードの「ハチに当たらない」
+      this._hard = false;
       this.invincible = false;
       // beltFlip: 本物の時報（毎正時）でベルトの向きが逆になっている
       this.beltFlip = false;
@@ -317,8 +368,8 @@
       };
       // steps: 進めた回数（ランキングの時間はこれ÷120） / winds: 巻いた回数の合計
       // maxDrop・totalDrop: 倒れた落下のいちばん長い・合計の高さ（px） / maxDropFloors: 1回で落ちた階の数 / fullDrop: 鐘楼から1階まで落ちた
-      // hearts: 残りのハート（0でゲームオーバー＝ over）
-      this.stats = { time: 0, steps: 0, jumps: 0, falls: 0, winds: 0, stings: 0, maxDrop: 0, maxDropFloors: 0, totalDrop: 0, fullDrop: 0, best: this.d.y, hearts: P.hearts };
+      // hearts: 残りのハート（0でゲームオーバー＝ over） / heartsGot: 拾った各階のハート（level.hearts の番号のビット） / pecks: 鳩に当たった回数
+      this.stats = { time: 0, steps: 0, jumps: 0, falls: 0, winds: 0, stings: 0, pecks: 0, maxDrop: 0, maxDropFloors: 0, totalDrop: 0, fullDrop: 0, best: this.d.y, hearts: heartStart(this._hard), heartsGot: 0 };
       this.over = false;
       this.clock = 0;
       this.resetRust();
@@ -327,6 +378,61 @@
       this.prevButton = false;
       this.ended = false;
       this.events.length = 0;
+    }
+
+    get hard() {
+      return this._hard;
+    }
+
+    // 塔の種類を変えると配置も変わる（動く足場・ハチ・錆びた梁は、その配置の物に作り直す）
+    set hard(v) {
+      this._hard = !!v;
+      const L = this._hard ? this.base.hardLevel || this.base : this.base;
+      if (L === this.level) return;
+      this.level = L;
+      this.movers = L.movers.map((m) => Object.assign({ x: 0, y: 0, px: 0, py: 0, a: 0 }, m));
+      if (this.d) this.d.mover = -1;
+      this.resetRust();
+      this.resetBees();
+      if (Number.isFinite(this.clock)) this.updateMovers(false);
+      // ハートの数は塔の種類で違う（始める前なら初めの数に、途中なら最大までに収める）。拾った印は配置が変わるので消す
+      if (this.stats) {
+        this.stats.hearts = this.stats.steps === 0 ? heartStart(this._hard) : Math.min(this.stats.hearts, heartMax(this._hard));
+        this.stats.heartsGot = 0;
+      }
+    }
+
+    heartMax() {
+      return heartMax(this._hard);
+    }
+
+    // ハートを1つ失う（倒れた・ハチに刺された・鳩に押し出された）。0でゲームオーバー
+    loseHeart() {
+      const st = this.stats;
+      if (this.endless || st.hearts <= 0) return;
+      st.hearts--;
+      this.events.push('heart');
+      if (st.hearts === 0) {
+        this.over = true;
+        this.events.push('gameover');
+      }
+    }
+
+    // 各階のハートに触れたら拾う（最大のときは拾わずに残す。1回の挑戦で1回だけ）
+    takeHearts() {
+      if (this.endless || this.over) return;
+      const d = this.d, st = this.stats;
+      const list = this.level.hearts;
+      for (let i = 0; i < list.length; i++) {
+        if (st.heartsGot & (1 << i) || st.hearts >= heartMax(this._hard)) continue;
+        const h = list[i];
+        const x = h.tx * TILE, y = h.ty * TILE;
+        if (d.x < x + TILE && d.x + P.dollW > x && d.y < y + TILE && d.y + P.dollH > y) {
+          st.heartsGot |= 1 << i;
+          st.hearts++;
+          this.events.push('heartup');
+        }
+      }
     }
 
     // t: 崩れるまでの残り秒（0 = 乗っていない） / down: 崩れてから戻るまでの残り秒
@@ -365,6 +471,8 @@
     }
 
     restore(s) {
+      // 塔の種類を先に戻す（配置が変わると、ハチと梁の様子を作り直すため）
+      if (typeof s.hard === 'boolean') this.hard = s.hard;
       Object.assign(this.d, s.d);
       Object.assign(this.stats, s.stats);
       this.clock = s.clock || 0;
@@ -376,7 +484,6 @@
       this.prevButton = s.prevButton;
       this.ended = s.ended;
       this.over = !!s.over;
-      if (typeof s.hard === 'boolean') this.hard = s.hard;
       if (typeof s.beltFlip === 'boolean') this.beltFlip = s.beltFlip;
     }
 
@@ -384,7 +491,7 @@
       const d = this.d;
       // 錆びた梁とハチの様子も残す（開き直しで、崩れた梁が戻る・追ってくるハチが巣に帰る、を起こさないため）
       return {
-        x: d.x, y: d.y, facing: d.facing, clock: this.clock, hard: this.hard, stats: Object.assign({}, this.stats),
+        x: d.x, y: d.y, facing: d.facing, clock: this.clock, hard: this.hard, stats: Object.assign({}, this.stats), hurtT: d.hurtT,
         rust: this.rust.map((b) => ({ t: b.t, down: b.down })),
         bees: this.bees.map((b) => ({ x: b.x, y: b.y, vx: b.vx, vy: b.vy, mode: b.mode, t: b.t, cool: b.cool, tx: b.tx, ty: b.ty })),
       };
@@ -462,6 +569,9 @@
       const num = (v) => Number.isFinite(v);
       // exact: 保存のどこも、決まりの値で置き換えずに読めた（false なら記録の再生と合わないので、挑戦の記録は送れない）
       let exact = (o.facing === 1 || o.facing === -1) && typeof o.hard === 'boolean' && num(o.clock) && o.clock >= 0;
+      // 当たった後の当たらない時間も引き継ぐ（開き直しで消えると、続けてハートを失う。2026-11-02 検査係）
+      if (num(o.hurtT) && o.hurtT >= -DT && o.hurtT <= P.hurtTime) d.hurtT = o.hurtT;
+      else exact = false;
       if (Array.isArray(o.rust) && o.rust.length === this.rust.length && o.rust.every((b) => b && num(b.t) && num(b.down) && b.t >= 0 && b.down >= 0)) {
         this.rust = o.rust.map((b) => ({ t: b.t, down: b.down }));
       } else exact = false;
@@ -473,16 +583,22 @@
         });
       } else exact = false;
       if (o.stats && typeof o.stats === 'object') {
-        for (const k of ['time', 'steps', 'jumps', 'falls', 'winds', 'stings', 'maxDrop', 'maxDropFloors', 'totalDrop', 'fullDrop']) {
+        for (const k of ['time', 'steps', 'jumps', 'falls', 'winds', 'stings', 'pecks', 'maxDrop', 'maxDropFloors', 'totalDrop', 'fullDrop']) {
           const v = o.stats[k];
           if (!(Number.isFinite(v) && v >= 0)) exact = false;
           this.stats[k] = Number.isFinite(v) && v >= 0 ? v : 0;
         }
       } else exact = false;
       const hv = o.stats && o.stats.hearts;
-      if (Number.isInteger(hv) && hv >= 0 && hv <= P.hearts) this.stats.hearts = hv;
+      if (Number.isInteger(hv) && hv >= 0 && hv <= heartMax(this.hard)) this.stats.hearts = hv;
       else {
-        this.stats.hearts = P.hearts;
+        this.stats.hearts = heartStart(this.hard);
+        exact = false;
+      }
+      const gv = o.stats && o.stats.heartsGot;
+      if (Number.isInteger(gv) && gv >= 0 && gv < 2 ** this.level.hearts.length) this.stats.heartsGot = gv;
+      else {
+        this.stats.heartsGot = 0;
         exact = false;
       }
       this.over = this.stats.hearts <= 0 && !this.endless;
@@ -674,6 +790,7 @@
       if (this.level.vents.length) this.updateVents(prevClock);
       if (this.level.cuckoos.length) this.updateCuckoos(prevClock);
       if (this.bees.length) this.updateBees();
+      if (this.level.hearts.length) this.takeHearts();
 
       if (d.grounded) {
         if (d.mover >= 0 && !this.onMoverAt(d.mover)) d.mover = -1;
@@ -818,8 +935,10 @@
         d.mover = -1;
         d.wind = 0;
         d.peakY = d.y;
-        d.hurtT = 0.5;
+        d.hurtT = P.hurtTime;
+        this.stats.pecks++;
         this.events.push('peck');
+        this.loseHeart();
       }
     }
 
@@ -903,6 +1022,7 @@
           b.vx = -dir * 40;
           b.vy = -40;
           this.events.push('sting');
+          this.loseHeart();
         }
       }
     }
@@ -1009,14 +1129,7 @@
         st.maxDropFloors = Math.max(st.maxDropFloors, here - top);
         if (top === 0 && here === this.level.screenCount - 1) st.fullDrop = 1;
         this.events.push('splat');
-        if (!this.endless && st.hearts > 0) {
-          st.hearts--;
-          this.events.push('heart');
-          if (st.hearts === 0) {
-            this.over = true;
-            this.events.push('gameover');
-          }
-        }
+        this.loseHeart();
       } else {
         this.events.push('land');
         d.state = d.wind > 0 ? 'walking' : 'idle';
@@ -1124,7 +1237,7 @@
   }
 
   const api = {
-    TILE, COLS, ROWS, SCREEN_W, SCREEN_H, DT, P, SOLID, LOG, CORE_REV,
+    TILE, COLS, ROWS, SCREEN_W, SCREEN_H, DT, P, SOLID, LOG, CORE_REV, heartStart, heartMax,
     buildLevel, levelToText, rulesId, moverPos, ventState, magnetOn, cuckooExt, windAt, windNext, flashAt, dsin, dcos, Sim, Replayer,
   };
   root.ZenmaiCore = api;

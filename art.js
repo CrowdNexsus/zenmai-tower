@@ -197,39 +197,65 @@
   ];
 
   // ---------- 人形 ----------
+  // 人形: 18×26 の絵（物理の当たりは 12×20。帽子の羽根と腕が少しはみ出す）。足の下が絵のいちばん下。
+  // 頭（帽子と顔）・胴（腕）・足を組み合わせて、動きと顔の向きを作る
   const DOLL_PAL = {
-    k: '#1b1424', n: '#2e3d73', N: '#4a5fa3', y: '#e8b54a', Y: '#a8742a', s: '#f3d5ad', S: '#d6a77a',
-    e: '#1b1424', c: '#e88a7a', r: '#c0392b', R: '#e45b4a', d: '#82241b', w: '#f4efe6', p: '#2a2433', P: '#3f3850', b: '#3b2416',
+    k: '#140e1c', n: '#2e3d73', N: '#5a70b8', y: '#ffd25a', Y: '#b07a28', h: '#ff5a4a', s: '#f6dcb6', S: '#d9a97c',
+    e: '#140e1c', E: '#ffffff', c: '#f08a80', r: '#d03a2c', R: '#ff6a50', d: '#86231a', w: '#f7f2e8', p: '#2a2433', P: '#4a4262', b: '#3b2416',
   };
-  const DOLL_TOP = [
-    '................',
-    '.....kkkkkk.....',
-    '....knnnnnNk....',
-    '....knnnnnNk....',
-    '....knnyynNk....',
-    '....knnYYnNk....',
-    '...kkkkkkkkkkk..',
-    '....kssssssk....',
-    '....kssssesk....',
-    '....ksssscsk....',
-    '....kSssssSk....',
-    '.....kkkkkk.....',
-    '....kdrrrrRk....',
-    '...kdrrwrrRRk...',
-    '...kdrrwyrRRk...',
-    '...kdrrwrrRRk...',
-    '...kdrrwyrRRk...',
-    '...kkwwwwwwwk...',
-    '....kdrrrrRk....',
+  const HAT = [
+    '........hh........',
+    '.......khhk.......',
+    '.....kkkkkkkk.....',
+    '....knnnnnnNNk....',
+    '....knnnnnnnNk....',
+    '....knnnyynnNk....',
+    '....knnnYYnnNk....',
+    '...kkkkkkkkkkkk...',
   ];
-  const LEGS = {
-    idle: ['....kppkPPk.....', '....kppkPPk.....', '....kppkPPk.....', '....kbbkbbbk....', '....kkkkkkkk....'],
-    a: ['....kppkPPk.....', '...kppk.kPPk....', '...kppk..kPPk...', '..kbbbk..kbbbk..', '..kkkkk..kkkkk..'],
-    b: ['....kppkPPk.....', '...kPPk.kppk....', '...kPPk..kppk...', '..kbbbk..kbbbk..', '..kkkkk..kkkkk..'],
-    tuck: ['....kppkPPk.....', '....kbbkbbbk....', '....kkkkkkkk....', '................', '................'],
+  const FACES = {
+    // ふつう・まばたき・こわがる（高い所から落ちている）・目を回す（倒れた）
+    open: ['....kssssssssk....', '....ksssssEesk....', '....kssssseesk....', '....kSssssscsk....', '.....kSSSSSSk.....', '.....kkkkkkkk.....'],
+    blink: ['....kssssssssk....', '....kssssssssk....', '....ksssssSSsk....', '....kSssssscsk....', '.....kSSSSSSk.....', '.....kkkkkkkk.....'],
+    scared: ['....kssssssssk....', '....ksssssEeEk....', '....ksssssEeEk....', '....kSsssskcsk....', '.....kSSSSSSk.....', '.....kkkkkkkk.....'],
+    dizzy: ['....kssssssssk....', '....ksssssesek....', '....kssssssesk....', '....kSssssscsk....', '.....kSSSSSSk.....', '.....kkkkkkkk.....'],
   };
-  const DOLL = {};
-  for (const k of Object.keys(LEGS)) DOLL[k] = sprite(DOLL_TOP.concat(LEGS[k]), DOLL_PAL);
+  const BODIES = {
+    // 腕を下ろす・横に広げる（上っている）・上げてばたつく（落ちている）
+    down: ['....kdrrwrrrRk....', '...kkdrrwyrrRkk...', '...kdkrrwyrrkRk...', '...kdkrrwrrrkRk...', '...kskwwwwwwksk...', '....kkdrrrrRkk....'],
+    out: ['....kdrrwrrrRk....', '.kkkkdrrwyrrRkkkk.', 'kssdddrrwrrrRRRssk', '.kkkkdrrwrrrRkkkk.', '....kwwwwwwwwk....', '....kkdrrrrRkk....'],
+    up: ['ks..kdrrwrrrRk..sk', 'kdk.kdrrwyrrRk.kRk', '.kdkkdrrwrrrRkkRk.', '..kkdrrrwrrrRRkk..', '....kwwwwwwwwk....', '....kkdrrrrRkk....'],
+  };
+  const LEGS = {
+    stand: ['.....kppkPPk......', '.....kppkPPk......', '.....kppkPPk......', '.....kppkPPk......', '.....kbbkbbbk.....', '.....kkkkkkkk.....'],
+    a: ['.....kppkPPk......', '....kppk.kPPk.....', '....kppk..kPPk....', '...kppk...kPPk....', '..kbbbk....kbbbk..', '..kkkkk....kkkkk..'],
+    b: ['.....kPPkppk......', '....kPPk.kppk.....', '....kPPk..kppk....', '...kPPk...kppk....', '..kbbbk....kbbbk..', '..kkkkk....kkkkk..'],
+    tuck: ['.....kppkPPk......', '....kbbbkbbbk.....', '....kkkkkkkkk.....', '..................', '..................', '..................'],
+    spread: ['.....kppkPPk......', '....kppk..kPPk....', '...kppk....kPPk...', '..kbbk......kbbk..', '..kkk........kkk..', '..................'],
+  };
+  // 絵の組み合わせ（名前 → [胴, 足]）
+  const POSES = { idle: ['down', 'stand'], a: ['down', 'a'], b: ['down', 'b'], tuck: ['out', 'tuck'], fall: ['up', 'spread'], flail: ['out', 'spread'] };
+  // 輪郭のまわりに1画素の明るいふち（暗い階でも人形の形が見えるように）
+  function rimOf(img, col) {
+    const w = img.width, h = img.height;
+    const src = img.getContext('2d').getImageData(0, 0, w, h).data;
+    const on = (x, y) => x >= 0 && y >= 0 && x < w && y < h && src[(y * w + x) * 4 + 3] > 0;
+    const c = shape(w + 2, h + 2, (x, y) => (!on(x - 1, y - 1) && (on(x - 2, y - 1) || on(x, y - 1) || on(x - 1, y - 2) || on(x - 1, y)) ? col : null));
+    return c;
+  }
+  function makeDollSet(pal) {
+    const cache = {};
+    return (pose, face) => {
+      const key = pose + face;
+      if (!cache[key]) {
+        const [body, legs] = POSES[pose];
+        const img = sprite(HAT.concat(FACES[face], BODIES[body], LEGS[legs]), pal);
+        cache[key] = { img, rim: rimOf(img, '#fff1c8') };
+      }
+      return cache[key];
+    };
+  }
+  const DOLL = makeDollSet(DOLL_PAL);
 
   // ---------- 鐘 ----------
   const BELL = (() => {
@@ -303,8 +329,7 @@
   // 幽霊（前の自分）は、同じ形を薄い青で
   const GHOST_PAL = {};
   for (const k of Object.keys(DOLL_PAL)) GHOST_PAL[k] = k === 'k' || k === 'e' ? '#4a6a9a' : '#bcd8ff';
-  const GHOST = {};
-  for (const k of Object.keys(LEGS)) GHOST[k] = sprite(DOLL_TOP.concat(LEGS[k]), GHOST_PAL);
+  const GHOST = makeDollSet(GHOST_PAL);
   // ハート（倒れて失ったとき、人形の上に浮かんで割れる）
   const HEART = sprite([
     '.kk.kk.',
@@ -346,6 +371,11 @@
     let shake = 0;
     let endT = null;
     let lastT = null;
+    // 手応えの演出: stretchT 跳んだ直後の伸び / landT 着地のつぶれ（landAmt 強さ・landMax 長さ）/ quake 画面の揺れ / flash 白く光る
+    let stretchT = 0, landT = 0, landAmt = 0, landMax = 0.12, quake = 0, quakeAmp = 0, flash = 0;
+    let wasFull = false;
+    // 花火（自己最高を超えたとき）: { x, y（塔の中の画素）, at（打ち上げまでの秒）, col }
+    const rockets = [];
 
     const themeOf = (s) => THEMES[level.themes[s]] || THEMES.belfry;
     const solid = (ty, tx) => {
@@ -1734,14 +1764,28 @@
       g.scale(d.facing, 1);
       if (d.state === 'down') {
         g.rotate(-Math.PI / 2);
-        g.drawImage(GHOST.idle, -3, -12);
+        g.drawImage(GHOST('idle', 'dizzy').img, -3, -13);
       } else {
-        let frame = 'idle';
-        if (d.state === 'walking' && d.grounded) frame = ['a', 'idle', 'b', 'idle'][Math.floor(t * 10) % 4];
-        else if (!d.grounded && d.vy < 0) frame = 'tuck';
-        g.drawImage(GHOST[frame], -8, -24);
+        const { pose, face } = poseOf(d, t, false);
+        g.drawImage(GHOST(pose, face).img, -9, -26);
       }
       g.restore();
+    }
+
+    // 人形の絵の選び方（幽霊も同じ。live = 本物の人形ならまばたきもする）
+    function poseOf(d, t, live) {
+      let pose = 'idle', face = 'open';
+      if (d.state === 'walking' && d.grounded) pose = ['a', 'idle', 'b', 'idle'][Math.floor(t * 10) % 4];
+      else if (!d.grounded) {
+        if (d.vy < 0) pose = 'tuck';
+        else if (d.y - d.peakY > C.P.splatHeight * 0.7) {
+          // 倒れるほどの高さを落ちている: 手足をばたつかせて、こわがる
+          pose = Math.floor(t * 14) % 2 ? 'fall' : 'flail';
+          face = 'scared';
+        } else pose = d.vy > 80 ? 'flail' : 'tuck';
+      }
+      if (live && face === 'open' && d.grounded && (t % 3.3) < 0.12) face = 'blink';
+      return { pose, face };
     }
 
     function drawRuns(g, s, t) {
@@ -1816,31 +1860,53 @@
       const rx = Math.round(d.x * S), ry = Math.round((d.y - s * C.SCREEN_H) * S);
       const cx = rx + (C.P.dollW * S) / 2;
       const feet = ry + C.P.dollH * S;
+      // 足もとをほんのり照らす（暗い階でも人形の居場所が分かるように）
+      glow(g, cx, feet - 12, 30, '255,226,170', 0.13);
       g.save();
       if (d.state === 'down') {
         g.translate(cx, feet);
         g.scale(d.facing, 1);
         g.rotate(-Math.PI / 2);
-        g.drawImage(DOLL.idle, -3, -12);
+        const im = DOLL('idle', 'dizzy');
+        g.drawImage(im.rim, -4, -14);
+        g.drawImage(im.img, -3, -13);
         g.restore();
         for (let i = 0; i < 3; i++) {
           const a = t * 6 + (i * Math.PI * 2) / 3;
-          rect(g, Math.round(cx - d.facing * 10 + Math.cos(a) * 8), Math.round(feet - 18 + Math.sin(a) * 3), 2, 2, '#ffe27a');
+          rect(g, Math.round(cx - d.facing * 12 + Math.cos(a) * 8), Math.round(feet - 20 + Math.sin(a) * 3), 2, 2, '#ffe27a');
         }
         return;
       }
-      const walking = d.state === 'walking' && d.grounded;
-      let frame = 'idle';
-      if (walking) frame = ['a', 'idle', 'b', 'idle'][Math.floor(t * 10) % 4];
-      else if (!d.grounded && d.vy < 0) frame = 'tuck';
-      const sx = d.state === 'winding' && shake > 0 ? (Math.floor(t * 60) % 2 ? 1 : -1) : 0;
-      g.translate(cx + sx, feet);
-      g.scale(d.facing, 1);
-      g.drawImage(DOLL[frame], -8, -24);
+      const { pose, face } = poseOf(d, t, true);
+      // 伸び縮み: 巻くほど縮み、跳んだ直後は縦に伸び、着地でつぶれる（見た目だけ。当たりは変わらない）
+      let sx = 1, sy = 1;
+      if (d.state === 'winding') {
+        const k = Math.min(1, d.wind / (d.cap || C.P.maxWind));
+        sx = 1 + 0.12 * k;
+        sy = 1 - 0.16 * k;
+      } else if (stretchT > 0) {
+        const k = stretchT / 0.16;
+        sx = 1 - 0.14 * k;
+        sy = 1 + 0.2 * k;
+      } else if (landT > 0) {
+        const k = landT / landMax;
+        sx = 1 + landAmt * 0.6 * k;
+        sy = 1 - landAmt * k;
+      }
+      const jx = d.state === 'winding' && shake > 0 ? (Math.floor(t * 60) % 2 ? 1 : -1) : 0;
+      g.translate(cx + jx, feet);
+      g.scale(d.facing * sx, sy);
+      const im = DOLL(pose, face);
+      g.globalAlpha = 0.7;
+      g.drawImage(im.rim, -10, -27);
+      g.globalAlpha = 1;
+      g.drawImage(im.img, -9, -26);
+      // ゼンマイが満タンになると、背中のねじが光る
+      if (d.state === 'winding' && d.wind >= d.cap) glow(g, -12, -9, 16, '255,216,96', 0.55 + 0.25 * Math.sin(t * 20));
       // 背中のねじ（回ると幅が変わって見える）
       const kw = Math.max(1, Math.round(Math.abs(Math.cos(keyAngle)) * 5));
-      const kx = -8 - kw;
-      rect(g, -8, -10, 3, 2, '#7b8290');
+      const kx = -9 - kw;
+      rect(g, -9, -10, 4, 2, '#7b8290');
       rect(g, kx + Math.floor((kw - 1) / 2), -11, 1, 3, '#9aa0aa');
       for (const ly of [-17, -8]) {
         rect(g, kx, ly, kw, 6, '#c9ced6');
@@ -1892,10 +1958,25 @@
         keyAngle += Math.PI / 6;
         shake = 0.06;
         particles.push({ x: fx - d.facing * 18, y: fy - 22, vx: -d.facing * 20, vy: -30, g: 0, life: 0, max: 0.25, col: '#fff6c8', size: 2 });
-      } else if (e === 'land') puff(fx, fy, 6, '#9a8a7a', 60, 30);
-      else if (e === 'jump') puff(fx, fy, 4, '#9a8a7a', 40, 20);
-      else if (e === 'step') puff(fx - d.facing * 4, fy, 1, '#7a6a5a', 20, 15);
+      } else if (e === 'land') {
+        puff(fx, fy, 6, '#9a8a7a', 60, 30);
+        // 高い所からの着地ほど強くつぶれる
+        const k = Math.min(1, Math.max(0, d.vy) / 300);
+        landAmt = 0.12 + 0.16 * k;
+        landMax = landT = 0.1 + 0.06 * k;
+        stretchT = 0;
+      } else if (e === 'jump') {
+        puff(fx, fy, 4, '#9a8a7a', 40, 20);
+        stretchT = 0.16;
+        landT = 0;
+      } else if (e === 'step') puff(fx - d.facing * 4, fy, 1, '#7a6a5a', 20, 15);
       else if (e === 'splat') {
+        // 倒れた: 画面が揺れて、一瞬白く光る（「動きを減らす」設定の人には揺らさず、光も弱く短く）
+        const calm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+        quake = calm ? 0 : 0.4;
+        quakeAmp = 7;
+        flash = calm ? 0.08 : 0.2;
+        stretchT = landT = 0;
         puff(fx, fy, 14, '#a8988a', 140, 60);
         for (let i = 0; i < 3; i++) {
           particles.push({ x: fx, y: fy - 10, vx: (Math.random() - 0.5) * 120, vy: -120 - Math.random() * 80, g: 600, life: 0, max: 0.9, col: '#c9ced6', size: 3 });
@@ -1919,7 +2000,50 @@
         endT = lastT;
       } else if (e === 'heart') {
         lost.push({ x: fx, y: fy - 34, t: 0 });
+      } else if (e === 'heartup') {
+        gained.push({ x: fx, y: fy - 34, t: 0 });
+        for (let i = 0; i < 12; i++) {
+          const a = (i / 12) * Math.PI * 2;
+          particles.push({ x: fx, y: fy - 10, vx: Math.cos(a) * 90, vy: Math.sin(a) * 90 - 20, g: 0, life: 0, max: 0.45, col: i % 2 ? '#ff8a96' : '#fff0f2', size: 2 });
+        }
       }
+    }
+
+    // 各階のハート（まだ拾っていない物）。ふわふわ上下して光る。暗い階でも見えるよう、暗さの上に描く
+    function drawHearts(g, s, t) {
+      const list = level.hearts || [];
+      const got = sim.stats.heartsGot || 0;
+      const full = sim.stats.hearts >= sim.heartMax();
+      g.imageSmoothingEnabled = false;
+      for (let i = 0; i < list.length; i++) {
+        const h = list[i];
+        if (h.screen !== s || got & (1 << i)) continue;
+        const cx = h.tx * T + T / 2, cy = (h.ty - s * C.ROWS) * T + T / 2 + Math.round(Math.sin(t * 3 + i) * 2);
+        // 満タンのときは拾えないので、少し薄くして光らせない
+        if (!full) glow(g, cx, cy, 22, '255,120,140', 0.35 + 0.15 * Math.sin(t * 4 + i));
+        g.globalAlpha = full ? 0.55 : 1;
+        g.drawImage(HEART, 0, 0, 7, 6, cx - 7, cy - 6, 14, 12);
+        g.globalAlpha = 1;
+      }
+    }
+
+    // 拾ったハート: 人形の上に浮かんで、ふくらみながら消える
+    const gained = [];
+    function drawGained(g, s, dt) {
+      g.imageSmoothingEnabled = false;
+      for (let i = gained.length - 1; i >= 0; i--) {
+        const h = gained[i];
+        h.t += dt;
+        if (h.t >= 1) {
+          gained.splice(i, 1);
+          continue;
+        }
+        const k = 1 + h.t * 0.6;
+        const w = Math.round(14 * k), hh = Math.round(12 * k);
+        g.globalAlpha = h.t < 0.6 ? 1 : 1 - (h.t - 0.6) / 0.4;
+        g.drawImage(HEART, 0, 0, 7, 6, Math.round(h.x - w / 2), Math.round(h.y - s * H - h.t * 30 - hh / 2), w, hh);
+      }
+      g.globalAlpha = 1;
     }
 
     // 失ったハート: 1秒浮かんで、最後に左右に割れて消える
@@ -1998,11 +2122,70 @@
 
     for (let s = 0; s < level.screenCount; s++) runs.push(runsOf(level, s));
 
+    // 自己最高を超えたとき: 人形のまわりに花火を5発、少しずつずらして上げる
+    function fireworks() {
+      const d = sim.d;
+      const x0 = (d.x + C.P.dollW / 2) * S, y0 = d.y * S;
+      // いま見えている画面の中に収める（画面の上の方の足場でも、花火が上の階に出ないように）
+      const top = sim.screenIndex() * H;
+      const cols = ['#ffd860', '#ff6a50', '#8fd4ff', '#b8ff8a', '#ff9ad8'];
+      for (let i = 0; i < 5; i++) {
+        const x = Math.max(40, Math.min(W - 40, x0 + (i - 2) * 46 + (Math.random() - 0.5) * 20));
+        let y = y0 - 60 - Math.random() * 80;
+        if (y < top + 70) y = y0 + 90 + Math.random() * 80;
+        rockets.push({ x, y: Math.max(top + 70, Math.min(top + H - 70, y)), at: i * 0.18, col: cols[i] });
+      }
+    }
+    function drawRockets(g, s, dt) {
+      for (let i = rockets.length - 1; i >= 0; i--) {
+        const r = rockets[i];
+        r.at -= dt;
+        if (r.at > 0) continue;
+        rockets.splice(i, 1);
+        for (let k = 0; k < 32; k++) {
+          const a = (k / 32) * Math.PI * 2 + Math.random() * 0.2;
+          const v = 110 + Math.random() * 70;
+          particles.push({ x: r.x, y: r.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: 90, life: 0, max: 0.8 + Math.random() * 0.4, col: k % 3 ? r.col : '#fff6d8', size: k % 4 ? 2 : 3 });
+        }
+        glowAt.push({ x: r.x, y: r.y, t: 0 });
+      }
+      // 開いた瞬間の光
+      for (let i = glowAt.length - 1; i >= 0; i--) {
+        const q = glowAt[i];
+        q.t += dt;
+        if (q.t > 0.35) {
+          glowAt.splice(i, 1);
+          continue;
+        }
+        glow(g, q.x, q.y - s * H, 50, '255,240,200', 0.5 * (1 - q.t / 0.35));
+      }
+    }
+    const glowAt = [];
+
     function render(t) {
       const dt = lastT === null ? 0 : Math.min(0.1, t - lastT);
       lastT = t;
       if (shake > 0) shake -= dt;
+      if (stretchT > 0) stretchT -= dt;
+      if (landT > 0) landT -= dt;
+      // 塔の種類を変えると配置も変わるので、描いておいた足場を作り直す
+      if (sim.level !== level) {
+        level = sim.level;
+        statics.length = 0;
+        runs.length = 0;
+        for (let s = 0; s < level.screenCount; s++) runs.push(runsOf(level, s));
+      }
       const d = sim.d;
+      // ゼンマイが満タンになった瞬間に、ねじから火花を散らす
+      const full = d.state === 'winding' && d.wind >= d.cap;
+      if (full && !wasFull) {
+        const fx = (d.x + C.P.dollW / 2 - d.facing * 6) * S, fy = (d.y + C.P.dollH / 2) * S;
+        for (let i = 0; i < 10; i++) {
+          const a = Math.random() * Math.PI * 2;
+          particles.push({ x: fx, y: fy, vx: Math.cos(a) * 70, vy: Math.sin(a) * 70 - 30, g: 160, life: 0, max: 0.4, col: i % 2 ? '#ffd860' : '#fff6c8', size: 2 });
+        }
+      }
+      wasFull = full;
       if (d.state === 'walking' && d.grounded) keyAngle -= dt * 6;
       if (sim.ended && endT === null) endT = t;
       if (!sim.ended) endT = null;
@@ -2010,6 +2193,14 @@
       if (!statics[s]) statics[s] = buildStatic(s);
       const theme = level.themes[s];
       curScreen = s;
+      // 画面の揺れ（倒れたとき）。ずらした分の端は黒で埋める
+      ctx.save();
+      if (quake > 0) {
+        quake -= dt;
+        const a = quakeAmp * Math.max(0, quake / 0.4);
+        rect(ctx, 0, 0, W, H, '#000');
+        ctx.translate(Math.round((Math.random() * 2 - 1) * a), Math.round((Math.random() * 2 - 1) * a));
+      }
       ctx.drawImage(statics[s].bg, 0, 0);
       if (DYN[theme]) DYN[theme](ctx, t);
       ctx.drawImage(statics[s].fg, 0, 0);
@@ -2024,8 +2215,10 @@
       drawGhost(ctx, s, t);
       if (!(d.hurtT > 0 && Math.floor(t * 16) % 2)) drawDoll(ctx, s, t);
       drawBees(ctx, s, t);
+      drawRockets(ctx, s, dt);
       drawParticles(ctx, s, dt);
       drawDark(ctx, s, t);
+      drawHearts(ctx, s, t);
       drawGauge(ctx, s);
       ctx.drawImage(vignette, 0, 0);
       drawWind(ctx, s, t);
@@ -2033,16 +2226,29 @@
       drawGuard(ctx, s, t);
       // 失ったハートも、暗い階で見えるように最後に描く
       drawLost(ctx, s, dt);
+      drawGained(ctx, s, dt);
+      ctx.restore();
+      if (flash > 0) {
+        ctx.globalAlpha = Math.min(1, flash / 0.2) * 0.75;
+        rect(ctx, 0, 0, W, H, '#fff8ec');
+        ctx.globalAlpha = 1;
+        flash -= dt;
+      }
     }
 
     function reset() {
       particles.length = 0;
       lost.length = 0;
+      gained.length = 0;
       rustWas.length = 0;
+      rockets.length = 0;
+      glowAt.length = 0;
       endT = null;
+      stretchT = landT = quake = flash = 0;
+      wasFull = false;
     }
 
-    return { render, onEvent, reset, buildStatic, setGhost: (g) => (ghost = g), setMarks: (m) => (marks = m), setLang: (l) => (lang = l) };
+    return { render, onEvent, reset, buildStatic, fireworks, setGhost: (g) => (ghost = g), setMarks: (m) => (marks = m), setLang: (l) => (lang = l) };
   }
 
   root.ZenmaiArt = { create: Art, SCALE: S, W, H, THEMES };

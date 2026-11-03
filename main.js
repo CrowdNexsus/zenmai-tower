@@ -85,7 +85,7 @@
       how1: '長押しで巻き（最大24回）、離すと歩き出す。止まれない',
       how2: '歩いている間に押すと跳ぶ。空中では動かせない',
       how4: '階ごとの仕掛けを見て登る。ハチは巻いている間は平気',
-      how7: 'ハートは3つ。倒れると1つ減り、無くなると1階から',
+      how7: 'ハートは3つ（各階で拾うと最大5）。倒れる・ハチや鳩で1つ減り、0で1階から',
       how6: '17階の鐘でゴール。毎正時の時報で10秒ベルトが逆回り',
       b_rank: 'ランキング', b_records: '記録と称号', b_transfer: '引き継ぎ', b_dev: '開発者', b_menu: 'メニュー', b_warp: '階えらび', back: 'もどる',
       rank_resend: '送れなかった記録を送り直す', h_records: '記録と称号',
@@ -99,10 +99,10 @@
       tr_empty: '読み込む文字を貼ってください', tr_bad: '読めない文字です（書き出した文字をそのまま貼ってください）',
       tr_confirm: 'もう一度押すと、この端末の記録を上書きして読み込みます', tr_done: '読み込みました。ページを読み直します',
       tr_fail: '保存できませんでした（この端末の空きが足りないかもしれません）', tr_big: 'ファイルが大きすぎます',
-      h_dev: '開発者モード', dev_note: '押した階の入口へ移る（数字キー。11階より上は Shift と数字）。ふだんの記録は変わらない。倒れてもハートは減らない',
+      h_dev: '開発者モード', dev_note: '押した階の入口へ移る（数字キー。11階より上は Shift と数字）。ふだんの記録は変わらない。倒れても当たってもハートは減らない',
       dev_back: '遊びにもどる', dev_exit: '開発者モードをやめる',
       h_end: '鐘が鳴った！', d_mode: '塔', d_time: 'かかった時間', d_winds: '巻いた回数', d_jumps: '跳んだ回数', d_hearts: '残りのハート', d_drop: 'いちばん長い落下', d_top: 'いちばん高く登った所',
-      end_note: 'むずかしい塔（巻いている間もハチに当たる）が、メニューから遊べるようになった',
+      end_note: 'むずかしい塔（足場がせまい・ハートは2つから最大3・巻いている間もハチに当たる）が、メニューから遊べるようになった',
       name_ph: '名前（10文字まで）', end_send: 'ランキングに送る', end_rank: 'ランキング', share: '結果を投稿', save_img: '画像を保存', again: 'もう一度登る',
       h_over: '力尽きた…', over_note: 'ハートが無くなった。1階からやり直し', retry: '1階からやり直す',
       pad_left: '左を向く', pad_right: '右を向く', pad_big: '巻く ／ 跳ぶ',
@@ -115,6 +115,8 @@
       invincible: '無敵 {v}', tower: '塔 {v}', normal: 'ふつう', hard: 'むずかしい', dev_suffix: '（開発者モード）', dev_tag: '[開発] ',
       chime_toast: '時報 {h}時。10秒間、歯車のベルトが逆に回る', title_toast: '称号「{n}」を手に入れた', title_join: '」「',
       heart_toast: 'ハートが1つ減った（のこり {n}）',
+      heartup_toast: 'ハートを拾った（{n} / {m}）',
+      new_floor: 'はじめて着いた！', new_top: 'これまでの最高を こえた！',
       r_clears: '鐘を鳴らした', r_clears_v: '{n}回（むずかしい {h}回）', r_best_n: 'いちばん速い（ふつう）', r_best_h: 'いちばん速い（むずかしい）',
       r_falls: '倒れた回数', r_drop: '落ちた高さの合計', r_maxdrop: 'いちばん長い落下', r_maxdrop_v: '{m}（{f}階ぶん）', r_top: 'いちばん高く登った所', r_over: 'ゲームオーバー',
       times: '{n}回', not_yet: 'まだ', best_v: '{t} ／ 巻いた {w}回', rec_count: '称号 {n} / {m}', hidden_title: '？？？', none: 'なし',
@@ -143,7 +145,7 @@
       how1: 'Hold to wind (max 24). Release to walk; you can\'t stop',
       how2: 'Press while walking to jump. No control in the air',
       how4: 'Read each floor\'s tricks. Bees can\'t hurt you while winding',
-      how7: '3 hearts. Hard falls cost one; at zero, back to 1F',
+      how7: '3 hearts (pick one up on each floor, max 5). Falls, bees and cuckoos cost one; at zero, back to 1F',
       how6: 'Ring the bell on 17F. On the hour, belts reverse for 10 s',
       b_rank: 'Ranking', b_records: 'Records', b_transfer: 'Transfer', b_dev: 'Dev', b_menu: 'Menu', b_warp: 'Floors', back: 'Back',
       rank_resend: 'Resend the unsent run', h_records: 'Records & Titles',
@@ -157,10 +159,10 @@
       tr_empty: 'Paste the text to import', tr_bad: 'Can\'t read this text (paste exactly what was exported)',
       tr_confirm: 'Press again to overwrite this device\'s save and import', tr_done: 'Imported. Reloading the page…',
       tr_fail: 'Couldn\'t save (this device may be out of space)', tr_big: 'The file is too large',
-      h_dev: 'Developer mode', dev_note: 'Jump to a floor\'s entrance (number keys; Shift + number above the 10th floor). Your normal save is not changed, and falls cost no hearts',
+      h_dev: 'Developer mode', dev_note: 'Jump to a floor\'s entrance (number keys; Shift + number above the 10th floor). Your normal save is not changed, and nothing costs hearts',
       dev_back: 'Back to the game', dev_exit: 'Leave developer mode',
       h_end: 'The bell rang!', d_mode: 'Tower', d_time: 'Time', d_winds: 'Winds', d_jumps: 'Jumps', d_hearts: 'Hearts left', d_drop: 'Longest fall', d_top: 'Highest point',
-      end_note: 'The Hard Tower (bees can hit you while winding) is now in the menu',
+      end_note: 'The Hard Tower (narrow ledges, 2 hearts up to 3, bees can hit you while winding) is now in the menu',
       name_ph: 'Name (up to 10 characters)', end_send: 'Submit', end_rank: 'Ranking', share: 'Share', save_img: 'Save image', again: 'Climb again',
       h_over: 'Out of hearts…', over_note: 'No hearts left. Back to the 1st floor', retry: 'Restart from the 1st floor',
       pad_left: 'Face left', pad_right: 'Face right', pad_big: 'Wind / Jump',
@@ -173,6 +175,8 @@
       invincible: 'Invincible: {v}', tower: 'Tower: {v}', normal: 'Normal', hard: 'Hard', dev_suffix: ' (developer mode)', dev_tag: '[Dev] ',
       chime_toast: '{h} o\'clock chime: the gear belts run backward for 10 seconds', title_toast: 'New title: {n}', title_join: ', ',
       heart_toast: 'Lost a heart ({n} left)',
+      heartup_toast: 'Picked up a heart ({n} / {m})',
+      new_floor: 'New floor!', new_top: 'New personal best height!',
       r_clears: 'Bells rung', r_clears_v: '{n} (Hard: {h})', r_best_n: 'Fastest (Normal)', r_best_h: 'Fastest (Hard)',
       r_falls: 'Falls', r_drop: 'Total fall height', r_maxdrop: 'Longest fall', r_maxdrop_v: '{m} ({f} floors)', r_top: 'Highest point', r_over: 'Game overs',
       times: '{n}', not_yet: 'None yet', best_v: '{t} / {w} winds', rec_count: 'Titles {n} / {m}', hidden_title: '???', none: 'None',
@@ -406,6 +410,13 @@
     buzz: () => {
       for (let i = 0; i < 3; i++) tone('sawtooth', 240, 280, 0.08, 0.035, i * 0.12);
     },
+    // 自己最高の花火（出来事ではなく main.js から鳴らす）
+    newTop: () => {
+      for (let i = 0; i < 5; i++) {
+        noise(0.18, 0.18, 2200, i * 0.18 + 0.05);
+        tone('square', 880 + i * 110, 1320 + i * 110, 0.12, 0.03, i * 0.18);
+      }
+    },
     guard: () => {
       tone('square', 1900, 1900, 0.04, 0.04);
       tone('sine', 2600, 2200, 0.18, 0.06, 0.02);
@@ -432,6 +443,9 @@
     peck: () => {
       tone('square', 900, 600, 0.05, 0.06);
       noise(0.08, 0.3, 2000);
+    },
+    heartup: () => {
+      [523, 659, 784, 1047].forEach((f, i) => tone('square', f, f, 0.09, 0.05, i * 0.07));
     },
     gust: () => noise(1.2, 0.12, 700, 0, 'bandpass'),
     thunder: () => {
@@ -503,8 +517,9 @@
   // ---------- 記録と称号 ----------
   // 1階ぶん（320px）を4mとして数える
   const PX_PER_M = 80;
-  // topY: これまでにいちばん高く登った所（人形の上端の y。小さいほど高い） / gameovers: ハートが尽きた回数
-  const rec = Object.assign({ clears: 0, clearsHard: 0, falls: 0, totalDrop: 0, maxDrop: 0, maxDropFloors: 0, fullDrop: 0, best: {}, titles: {}, topY: null, gameovers: 0 }, getJSON(REC_KEY) || {});
+  // topY: これまでにいちばん高く登った所（人形の上端の y。小さいほど高い。跳んだ頂点も入る） / gameovers: ハートが尽きた回数
+  // landY: これまでに倒れずに着地したいちばん高い所（花火の基準。届かずに落ちた足場に、次にやっと乗れたら花火が出るように）
+  const rec = Object.assign({ clears: 0, clearsHard: 0, falls: 0, totalDrop: 0, maxDrop: 0, maxDropFloors: 0, fullDrop: 0, best: {}, titles: {}, topY: null, landY: null, gameovers: 0 }, getJSON(REC_KEY) || {});
   const saveRec = () => store.set(REC_KEY, JSON.stringify(rec));
   let seenDrop = 0;
   // test(記録, 今の挑戦, 鐘を鳴らしたか)
@@ -560,13 +575,19 @@
     return true;
   }
   function onHeart() {
-    hud.hearts.classList.remove('hit');
+    hud.hearts.classList.remove('hit', 'gain');
     void hud.hearts.offsetWidth;
     hud.hearts.classList.add('hit');
     if (sim.stats.hearts <= 0) return;
     // 同じ落下で称号の知らせが出たばかりなら、消さずにつなげる
     const text = tr('heart_toast', { n: sim.stats.hearts });
     toast(Date.now() - toastAt < 200 ? `${toastEl.textContent}${tr('toast_sep')}${text}` : text);
+  }
+  function onHeartUp() {
+    hud.hearts.classList.remove('hit', 'gain');
+    void hud.hearts.offsetWidth;
+    hud.hearts.classList.add('gain');
+    toast(tr('heartup_toast', { n: sim.stats.hearts, m: sim.heartMax() }));
   }
   const meters = (px) => `${(px / PX_PER_M).toFixed(1)}m`;
 
@@ -685,6 +706,7 @@
     logPush(sim.beltFlip ? LOG.FLIP_ON : LOG.FLIP_OFF);
     seenDrop = sim.stats.totalDrop;
     setupGhost();
+    markRunStart();
   }
   el('btn-continue').addEventListener('click', () => {
     if (!started) {
@@ -708,6 +730,7 @@
     shownScreen = -1;
     overPanel.hidden = true;
     setupGhost();
+    markRunStart();
   }
   // 「最初から」は2回押しで確かめる（どちらのボタンを押したかも覚える）
   let confirmUntil = 0;
@@ -757,13 +780,15 @@
       runLog = null;
       noLogWhy = 'why_dev';
       setupGhost();
+      markRunStart();
     }
     sim.ended = false;
     art.reset();
     shownScreen = -1;
   }
-  function warp(si) {
-    const sp = level.spawns[si];
+  // 開発者モード: その階の足場へ移る（行き先は今の塔の種類の配置から選ぶ）。stay = メニューを閉じない
+  function warp(si, stay = false) {
+    const sp = sim.level.spawns[si];
     if (!sp) return false;
     sim.ended = false;
     ending.hidden = true;
@@ -778,7 +803,7 @@
     });
     sim.beltFlip = flip;
     art.reset();
-    closeMenu();
+    if (!stay) closeMenu();
     return ok;
   }
   function fillDevFloors() {
@@ -813,7 +838,10 @@
     refreshDev();
   });
   el('dev-hard').addEventListener('click', () => {
+    // 塔の種類を変えると足場の配置も変わるので、同じ階の足場へ置き直す（壁の中や空中に残らないように）
+    const si = sim.screenIndex();
     sim.hard = !sim.hard;
+    warp(si, true);
     refreshDev();
   });
   el('dev-back').addEventListener('click', closeMenu);
@@ -1161,7 +1189,7 @@
     g.fillStyle = '#f1e6cf';
     g.font = font(44);
     g.fillText(tr(r.kind === 'clear' ? 'h_end' : 'h_over'), x, 190, maxW);
-    const hearts = '♥'.repeat(r.hearts) + '♡'.repeat(Math.max(0, P.hearts - r.hearts));
+    const hearts = '♥'.repeat(r.hearts) + '♡'.repeat(Math.max(0, C.heartMax(r.hard) - r.hearts));
     const lines = r.kind === 'clear'
       ? [[tr('d_mode'), modeName(r.hard)], [tr('d_time'), fmtSteps(r.steps)], [tr('d_winds'), tr('times', { n: r.winds.toLocaleString() })], [tr('d_hearts'), hearts]]
       : [[tr('d_mode'), modeName(r.hard)], [tr('d_top'), floorLabel(screenOfY(r.top))], [tr('d_time'), fmtSteps(r.steps)], [tr('d_jumps'), String(r.jumps)]];
@@ -1397,15 +1425,27 @@
     const cs = Math.round((n * 100) / 120);
     return `${Math.floor(cs / 6000)}:${String(Math.floor(cs / 100) % 60).padStart(2, '0')}.${String(cs % 100).padStart(2, '0')}`;
   }
-  const heartsText = () => (dev ? '♥∞' : '♥'.repeat(sim.stats.hearts) + '♡'.repeat(Math.max(0, P.hearts - sim.stats.hearts)));
+  const heartsText = () => (dev ? '♥∞' : '♥'.repeat(sim.stats.hearts) + '♡'.repeat(Math.max(0, sim.heartMax() - sim.stats.hearts)));
   let shownScreen = -1;
   let bannerTimer = null;
-  function showBanner() {
+  // bannerTop: この挑戦でいちばん上に着いた画面（それより上に初めて入ったら、金色の大きな帯にする）
+  let bannerTop = Infinity;
+  function showBanner(isNew = false) {
     const s = sim.screenIndex();
     banner.textContent = floorLabel(s, tr('floor_sep'));
+    banner.dataset.sub = tr('new_floor');
+    banner.classList.toggle('new', isNew);
     banner.classList.add('show');
     clearTimeout(bannerTimer);
-    bannerTimer = setTimeout(() => banner.classList.remove('show'), 1600);
+    bannerTimer = setTimeout(() => banner.classList.remove('show'), isNew ? 2400 : 1600);
+  }
+  // 自己最高の花火: 挑戦を始めた（続きから始めた）時点の、これまでに着地したいちばん高い所（rec.landY。
+  // landY が無い古い記録は topY）より高い所に、倒れずに初めて着地したら1回だけ
+  let topAtStart = null, fwDone = false;
+  function markRunStart() {
+    bannerTop = screenOfY(sim.stats.best);
+    topAtStart = Number.isFinite(rec.landY) ? rec.landY : Number.isFinite(rec.topY) ? rec.topY : null;
+    fwDone = false;
   }
   // 塔の地図と、いちばん高く登った所の旗
   const TOWER_H = level.screenCount * C.SCREEN_H;
@@ -1428,8 +1468,9 @@
   function updateHud() {
     const s = sim.screenIndex();
     if (s !== shownScreen) {
-      if (shownScreen !== -1 && state === 'play') showBanner();
+      if (shownScreen !== -1 && state === 'play') showBanner(!dev && s < bannerTop);
       shownScreen = s;
+      bannerTop = Math.min(bannerTop, s);
     }
     const area = `${dev ? tr('dev_tag') : sim.hard ? '★ ' : ''}${floorLabel(s)}`;
     if (hud.area.textContent !== area) hud.area.textContent = area;
@@ -1457,6 +1498,8 @@
       lastT = t;
       checkHour();
       let landed = false;
+      // softLand: 倒れずに着地した（花火は倒れた着地では上げない）
+      let softLand = false;
       while (acc >= DT) {
         acc -= DT;
         logInput();
@@ -1464,8 +1507,11 @@
         for (const e of sim.events) {
           art.onEvent(e);
           if (e === 'land' || e === 'splat') landed = true;
+          if (e === 'land') softLand = true;
+          if (e === 'splat') softLand = false;
           if (e === 'splat') onSplat();
           if (e === 'heart') onHeart();
+          if (e === 'heartup') onHeartUp();
           if (sounds[e]) sounds[e]();
         }
         sim.events.length = 0;
@@ -1479,7 +1525,20 @@
         }
       }
       stepGhost();
-      if (landed && noteTop()) saveRec();
+      if (softLand && state === 'play' && !dev && !fwDone && topAtStart !== null && sim.d.grounded && sim.d.state !== 'down' && sim.d.y < topAtStart - 0.5) {
+        fwDone = true;
+        art.fireworks();
+        toast(tr('new_top'));
+        if (sounds.newTop) sounds.newTop();
+      }
+      // 倒れずに着地したいちばん高い所を覚える（次の挑戦の花火の基準）
+      let recChanged = false;
+      if (softLand && !dev && sim.d.grounded && sim.d.state !== 'down' && !(Number.isFinite(rec.landY) && rec.landY <= sim.d.y)) {
+        rec.landY = sim.d.y;
+        recChanged = true;
+      }
+      if (landed && noteTop()) recChanged = true;
+      if (recChanged) saveRec();
       if (state === 'play' && (landed || saveTimer >= 1)) {
         saveTimer = 0;
         writeSave();
@@ -1604,7 +1663,7 @@
 
   // 試験用の入口（画面の自動試験から使う）
   window.__zenmai = {
-    sim, input, level, music, rec, RULES, warp, tr, makeCard, packSave, unpackSave, importSave, shareText,
+    sim, input, level, music, rec, RULES, warp, tr, makeCard, packSave, unpackSave, importSave, shareText, art,
     state: () => state,
     dev: () => dev,
     lang: () => lang,

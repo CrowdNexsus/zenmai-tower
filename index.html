@@ -45,10 +45,16 @@
   #app { --stage-w: min(calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
     calc((100dvh - var(--reserve) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 0.75), 720px); }
   canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; }
-  #banner { position: absolute; left: 0; right: 0; top: 18%; text-align: center; font-size: clamp(18px, 5vw, 28px);
+  #banner { position: absolute; left: 0; right: 0; top: 18%; text-align: center; font-size: clamp(13px, 5cqw, 28px);
     font-family: var(--pixel); letter-spacing: 0.12em; color: var(--text); text-shadow: 0 2px 0 #000, 0 0 12px #000;
     opacity: 0; transition: opacity 0.4s; pointer-events: none; }
   #banner.show { opacity: 1; }
+  /* はじめて着いた階: 金色で大きく、上に小さな見出し（字の大きさは窓ではなく舞台の幅に合わせる。横長の窓でも1行に収める） */
+  #banner.new { color: var(--accent); font-size: clamp(14px, 6.2cqw, 36px); text-shadow: 0 3px 0 #5a3a12, 0 0 16px rgba(232, 181, 74, 0.6); }
+  #banner.new::before { content: attr(data-sub); display: block; font-size: 0.5em; letter-spacing: 0.2em; color: #fff1c8; margin-bottom: 0.3em; }
+  #banner.new.show { animation: banner-pop 0.5s ease-out; }
+  @keyframes banner-pop { 0% { transform: scale(0.6); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) { #banner.new.show { animation: none; } }
   .overlay { position: absolute; inset: 0; background: rgba(10, 8, 14, 0.84); display: flex; flex-direction: column;
     align-items: center; justify-content: safe center; gap: 2.2cqw; padding: 4cqw; text-align: center; overflow-y: auto; }
   .overlay[hidden] { display: none; }
@@ -111,6 +117,8 @@
   #end-hearts { color: #e8394a; }
   #hud-hearts.hit { animation: heart-hit 0.3s 4; }
   @keyframes heart-hit { 50% { opacity: 0.15; transform: scale(1.35); } }
+  #hud-hearts.gain { animation: heart-gain 0.25s 3; }
+  @keyframes heart-gain { 50% { transform: scale(1.3); text-shadow: 0 0 6px #ffd1d6; } }
   /* 塔の地図: 右の細い帯。17階ぶんの目盛り、金 = これまでの最高、銀 = この挑戦の最高、点 = いま */
   #map { position: absolute; right: 1.4cqw; top: 9%; bottom: 4%; width: max(5px, 1.5cqw); border: 1px solid rgba(232, 181, 74, 0.4);
     border-radius: 3px; pointer-events: none;
@@ -176,7 +184,7 @@
         <li data-t="how1">長押しで巻き（最大24回）、離すと歩き出す。止まれない</li>
         <li data-t="how2">歩いている間に押すと跳ぶ。空中では動かせない</li>
         <li data-t="how4">階ごとの仕掛けを見て登る。ハチは巻いている間は平気</li>
-        <li data-t="how7">ハートは3つ。倒れると1つ減り、無くなると1階から</li>
+        <li data-t="how7">ハートは3つ（各階で拾うと最大5）。倒れる・ハチや鳩で1つ減り、0で1階から</li>
         <li data-t="how6">17階の鐘でゴール。毎正時の時報で10秒ベルトが逆回り</li>
       </ul>
       <button id="btn-continue" type="button">つづきから</button>
